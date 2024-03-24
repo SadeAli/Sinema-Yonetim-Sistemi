@@ -1,0 +1,61 @@
+------------
+TicketSeller
+------------
+- movies[]                              // list of movies will be displayed
+- soldTickets[]                         // list of ticket codes to validate sold tickets
+- todaysSessions[] (dictionary type probably)
+- halls[]
+
++ updateTodaysSesions()
++ getSessionList()
++ listMoviesByDate(date)
++ listMoviesByOrder(orderType enum)
+
++ addMovie(movie) bool          // dont add if exists
++ setHallMovie(Session, date)
++ removeMovie(Session)
+
+--------
+Hall
+--------
+- seatCountVertical
+- seatCountHorizontal
+- movieCalendar[]
+
++ setters()
++ getters()
+
+
+-----------
+Movie
+-----------
+- sessionDuration
+- rating
+- halls[]
+- ticketPrice
+- startDate
+- endDate
+
++ getters()
+
+------------
+Session
+------------
+- movieName
+- seats[][]
+
++ fillSeat(seatID) bool
++ isAvailable(seatID) bool
+
+-----------------------
+SessionSelectionWindow
+-----------------------
+
+
+RatingWindow
+------------
+// FieldOfRating
+// FieldOfTicketID
+
++ isTicketExists
++ saveRating()
