@@ -36,7 +36,7 @@ public class Auditorium {
 	}
 	
 	private int ID;
-	private static int lastID = 1;
+	private static int lastID = 0;
 	private LinkedList<SessionEntry> sessionEntries;
 	private static final LocalTime openingTime = LocalTime.of(9, 0);
 	private static final LocalTime closingTime = LocalTime.of(23, 59);
