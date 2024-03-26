@@ -1,6 +1,7 @@
 package biletsatis;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
@@ -35,10 +36,10 @@ public class Auditorium {
 	}
 	
 	private int ID;
-	private static int lastID = 0;
+	private static int lastID = 1;
 	private LinkedList<SessionEntry> sessionEntries;
 	private static final LocalTime openingTime = LocalTime.of(9, 0);
-	private static final LocalTime closingTime = LocalTime.of(21, 00);
+	private static final LocalTime closingTime = LocalTime.of(23, 59);
 	private static final int verticalSeatNumber = 8;
 	private static final int horizontalSeatNumber = 10;
 	private static ArrayList<Auditorium> auditoriums = new ArrayList<>();
@@ -98,12 +99,13 @@ public class Auditorium {
 		
 		int dur = Session.extendedDuration(Movie.getByID(movieID).getDuration());
 		
-		LocalTime time = LocalTime.from(openingTime);
+		LocalDateTime closingDateTime = LocalDateTime.of(myDate.getYear(), myDate.getMonth(), myDate.getDayOfMonth(), closingTime.getHour(), closingTime.getMinute());;
+		LocalDateTime time = LocalDateTime.of(myDate.getYear(), myDate.getMonth(), myDate.getDayOfMonth(), openingTime.getHour(), openingTime.getMinute());
 		
-		while (time.plusMinutes(dur).isBefore(closingTime)) {
-			Session ses = new Session(movieID, this.ID, date, time);
+		while (time.plusMinutes(dur).isBefore(closingDateTime)) {
+			Session ses = new Session(movieID, this.ID, date, LocalTime.from(time));
 			sesEn.sessionIDs.add(ses.getID());
-			time = LocalTime.from(time.plusMinutes(dur)); 
+			time = LocalDateTime.from(time.plusMinutes(dur)); 
 		}
 		if (sessionEntries.isEmpty()) {
 			sessionEntries.add(sesEn);
