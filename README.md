@@ -1,12 +1,15 @@
 # Bilet Satış Sistemi
 
-[sistemin amacı](#sistemin-amac%C4%B1)
+## İçindekiler
+[Sistemin Amacı](#sistemin-amac%C4%B1)
+[Sistemin Bileşenleri](#sistemin-bile%C5%9Fenleri)
+[Modül Alt Görevleri](#mod%C3%BCl-alt-g%C3%B6revleri)
 
-### sistemin amacı: 
+### Sistemin Amacı: 
 
     bilet satışlarının düzenlenmesi ve bilet satış istatistiklerinin tutulması
 
-### sistemin bileşenleri:
+### Sistemin Bileşenleri:
 
     1 - film tarih ve takvim modülü
     2 - fiyatlandırma ve kampanya modülü
@@ -14,7 +17,7 @@
     4 - ödeme modülü
     5 - istatistik modülü
 
-### modül alt görevleri:
+### Modül Alt Görevleri:
 
     1 - film tarih ve takvim modülü
         * filmlerin listelenmesi
