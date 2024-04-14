@@ -10,12 +10,11 @@
     bilet satışlarının düzenlenmesi ve bilet satış istatistiklerinin tutulması
 
 ### Sistemin Bileşenleri:
-
-    1 - film tarih ve takvim modülü
-    2 - fiyatlandırma ve kampanya modülü
-    3 - koltuk takip modülü
-    4 - ödeme modülü
-    5 - istatistik modülü
+    1 - film tarih ve takvim modülü  
+    2 - fiyatlandırma ve kampanya modülü  
+    3 - koltuk takip modülü  
+    4 - ödeme modülü  
+    5 - istatistik modülü  
 
 ### Modül Alt Görevleri:
 
