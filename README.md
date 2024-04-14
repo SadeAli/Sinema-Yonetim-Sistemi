@@ -1,6 +1,6 @@
 # Bilet Satış Sistemi
 
-[sistemin amacı](#sistemin_amacı)
+[sistemin amacı](#sistemin-amac%C4%B1)
 
 ### sistemin amacı: 
 
