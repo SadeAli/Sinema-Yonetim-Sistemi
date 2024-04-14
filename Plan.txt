@@ -1,0 +1,36 @@
+-----------
+Ana Pencere
+-----------
+// bilet al düğmesi
+// değerlendir düğmesi
+// admin girişi
+
+-----------------
+Bilet Alım Paneli
+-----------------
+// filtreleme düğmesi
+{
+    tarih filtresi
+}
+
+// sıralama düğmesi
+{
+    alfabetik
+    puan
+    sonraki seans yakınlığı
+}
+
+// Filmlerin Listesi
+{
+    filmin adı
+    süresi
+    bilet fiyatı
+    sonraki seans
+}
+
+--------------------
+Değerlendirme Paneli
+--------------------
+// bilet kodunun girileceği alan
+// punanın seçileceği alan
+// onay düğmesi
