@@ -1,8 +1,8 @@
 # Bilet Satış Sistemi
 
 ## İçindekiler
-[Sistemin Amacı](#sistemin-amac%C4%B1)
-[Sistemin Bileşenleri](#sistemin-bile%C5%9Fenleri)
+[Sistemin Amacı](#sistemin-amac%C4%B1)  
+[Sistemin Bileşenleri](#sistemin-bile%C5%9Fenleri)  
 [Modül Alt Görevleri](#mod%C3%BCl-alt-g%C3%B6revleri)
 
 ### Sistemin Amacı: 
