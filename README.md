@@ -1,4 +1,6 @@
 # Bilet Satış Sistemi
+Bir sinema salonunun koltuk satışlarının kolay bir şekilde düzenlenebilmesi
+ve yönetilebilmesi için hazırlanmış bir **İşlemsel Bilgi Sistemi**
 
 ## İçindekiler
 [Sistemin Amacı](#sistemin-amac%C4%B1)  
