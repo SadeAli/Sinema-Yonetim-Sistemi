@@ -6,9 +6,11 @@ Başlıklar:
     modül alt görevleri
 
 sistemin amacı: 
+
     bilet satışlarının düzenlenmesi ve bilet satış istatistiklerinin tutulması
 
 sistemin bileşenleri:
+
     1 - film tarih ve takvim modülü
     2 - fiyatlandırma ve kampanya modülü
     3 - koltuk takip modülü
@@ -16,6 +18,7 @@ sistemin bileşenleri:
     5 - istatistik modülü
 
 modül alt görevleri:
+
     1 - film tarih ve takvim modülü
         * filmlerin listelenmesi
         * tarih seçimi
