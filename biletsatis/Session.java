@@ -1,5 +1,3 @@
-package biletsatis;
-
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -65,6 +63,12 @@ public class Session {
 		return duration;
 	}
 	
+	/**
+	 * Calculates the extended duration of a session with breaks.
+	 * 
+	 * @param dur the duration of the movie in minutes
+	 * @return the extended duration of the session with breaks
+	 */
 	public static int extendedDuration(int dur) {
 		return (dur + ((dur / 60) * 10) + 30);	//10 min breaks every one hour, 30 min break between sessions.
 	}
@@ -75,9 +79,4 @@ public class Session {
 				+ date +", startTime="
 				+ startTime + ", duration=" + duration + "]";
 	}
-	
-	
-	
-	
-	
 }

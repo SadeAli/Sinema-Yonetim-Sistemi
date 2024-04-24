@@ -1,11 +1,10 @@
-package biletsatis;
+// Movie class
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.util.LinkedList;
 
 public class Movie {
-	
-	private int ID;
+    private int ID;
 	private static int lastID = 0;
 	private String name;
 	private int duration;	//minutes
@@ -15,10 +14,12 @@ public class Movie {
 	private static final int rateUpperLimit = 5;
 	private static final int rateLowerLimit = 0;
 	private int rateNumber;
-	private static ArrayList<Movie> movies = new ArrayList<>();
-	
-	public Movie(String name, int duration, LocalDate release, LocalDate lastShowDay) {
-		this.name = name;
+	private static LinkedList<Movie> movies = new LinkedList<>();
+
+
+    // Constructor
+    public Movie(String name, int duration, LocalDate release, LocalDate lastShowDay) {
+        this.name = name;
 		this.duration = duration;
 		this.release = release;
 		this.lastShowDay = lastShowDay;
@@ -28,88 +29,74 @@ public class Movie {
 		rating = 0;
 		rateNumber = 0;
 		movies.add(this);
-	}
-	
-	public int getID() {
-		return ID;
-	}
+    }
 
-	public static int getLastID() {
-		return lastID;
-	}
+    // Getters
 
-	public static int getRateupperlimit() {
-		return rateUpperLimit;
-	}
+    public int getID() {
+        return ID;
+    }
 
-	public static int getRatelowerlimit() {
-		return rateLowerLimit;
-	}
+    public String getName() {
+        return name;
+    }
 
-	public String getName() {
-		return name;
-	}
+    public int getDuration() {
+        return duration;
+    }
 
-	public void setName(String name) {
-		this.name = name;
-	}
+    public LocalDate getRelease() {
+        return release;
+    }
 
-	public int getDuration() {
-		return duration;
-	}
+    public LocalDate getLastShowDay() {
+        return lastShowDay;
+    }
 
-	public void setDuration(int duration) {
-		this.duration = duration;
-	}
+    public float getRating() {
+        return rating;
+    }
 
-	public LocalDate getRelease() {
-		return release;
-	}
+    // Method to add a rating to the movie
+    public boolean addRating(int newRate) {
+        if (newRate > rateUpperLimit || newRate < rateLowerLimit) {
+            return false;
+        }
+        rateNumber++;
+        
+        // To prevent overflow
+        rating = rating + (newRate - rating) / rateNumber;
+        return true;
+    }
 
-	public void setRelease(LocalDate release) {
-		this.release = release;
-	}
+    // Method to get a movie by its ID
+    public static Movie getByID(int ID) {
+        for (Movie movie : movies) {
+            if (movie.ID == ID) {
+                return movie;
+            }
+        }
+        return null;
+    }
 
-	public LocalDate getLastShowDay() {
-		return lastShowDay;
-	}
+    // Method to check if a movie is currently showing
+    public boolean isCurrentlyShowing() {
+        LocalDate currentDate = LocalDate.now();
+        return currentDate.isBefore(lastShowDay);
+    }
 
-	public void setLastShowDay(LocalDate lastShowDay) {
-		this.lastShowDay = lastShowDay;
-	}
+    // Method to display all the movies
+    public static void displayAllMovies() {
+        for (Movie movie : movies) {
+            System.out.println(movie);
+        }
+    }
 
-	public float getRating() {
-		return rating;
-	}
+    @Override
+    public String toString() {
+        // Method to convert the movie object to a string representation
+        return "Movie [ID=" + ID + ", name=" + name + ", duration=" + duration + ", release=" + release
+                + ", lastShowDay=" + lastShowDay + ", rating=" + rating + ", rateNumber=" + rateNumber + "]";
+    }
+}    
 
-	public int getRateNumber() {
-		return rateNumber;
-	}
-	
-	public boolean addRating(int newRate) {
-		if (newRate > rateUpperLimit || newRate < rateLowerLimit) {
-			return false;
-		}
-		rateNumber++;
-		rating = rating + (newRate - rating)/rateNumber;
-		return true;
-	}
-	
-	public static Movie getByID(int ID) {
-		for (Movie movie : movies) {
-			if (movie.ID == ID) {
-				return movie;
-			}
-		}
-		return null;
-	}
-
-	@Override
-	public String toString() {
-		return "Movie [ID=" + ID + ", name=" + name + ", duration=" + duration + ", release=" + release
-				+ ", lastShowDay=" + lastShowDay + ", rating=" + rating + ", rateNumber=" + rateNumber + "]";
-	}
-	
-	
-	
-}
