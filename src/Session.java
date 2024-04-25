@@ -2,21 +2,26 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
 
+//TODO change ID with id in all classes
+
 public class Session {
 	
 	private int ID;
 	private static int lastID = 0;
 	private int movieID;
-	private int auditoriumID;
+	private int screeningRoomID;
 	private LocalDate date;
 	private LocalTime startTime;
 	private int duration;
-	private int[][] tickets;
+	//private int[][] tickets;
 	private static ArrayList<Session> sessions = new ArrayList<>();
 	
-	public Session(int movieID, int auditoriumID, LocalDate date, LocalTime startTime) {
+	public Session(int movieID, int screeningRoomID, LocalDate date, LocalTime startTime) {
+
+		//TODO Check if the screening room is available at the given time.
+		
 		this.movieID = movieID;
-		this.auditoriumID = auditoriumID;
+		this.screeningRoomID = screeningRoomID;
 		this.startTime = LocalTime.from(startTime);
 		this.date = LocalDate.from(date);
 		
@@ -27,7 +32,7 @@ public class Session {
 		
 		sessions.add(this);
 		
-		tickets = new int[Auditorium.getVerticalSeatNumber()][Auditorium.getHorizontalSeatNumber()];
+		//tickets = new int[ScreeningRoom.getVerticalSeatNumber()][ScreeningRoom.getHorizontalSeatNumber()];
 	}
 	
 	public static Session getByID(int sesid) {
@@ -51,8 +56,8 @@ public class Session {
 		return movieID;
 	}
 
-	public int getAuditoriumID() {
-		return auditoriumID;
+	public int getScreeningRoomID() {
+		return screeningRoomID;
 	}
 
 	public LocalTime getStartTime() {
@@ -75,7 +80,7 @@ public class Session {
 
 	@Override
 	public String toString() {
-		return "Session [ID=" + ID + ", movieID=" + movieID + ", movieName=" + Movie.getByID(movieID).getName() + ", auditoriumID=" + auditoriumID + ", date="
+		return "Session [ID=" + ID + ", movieID=" + movieID + ", movieName=" + Movie.getByID(movieID).getName() + ", screeningRoomID=" + screeningRoomID + ", date="
 				+ date +", startTime="
 				+ startTime + ", duration=" + duration + "]";
 	}
