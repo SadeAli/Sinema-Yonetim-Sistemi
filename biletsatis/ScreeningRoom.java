@@ -8,13 +8,13 @@ import java.util.ArrayList;
 public class ScreeningRoom {
 	
 	private class SessionEntry {
-		private LinkedList<Integer> sessionIDs;
+		private LinkedList<Integer> sessionIDList;
 		private int movieID;
 		private LocalDate date;
 		
 		public SessionEntry(int movieID, LocalDate date) {
 			this.movieID = movieID;
-			sessionIDs = new LinkedList<Integer>();
+			sessionIDList = new LinkedList<Integer>();
 			this.date = LocalDate.from(date);
 		}
 
@@ -26,8 +26,8 @@ public class ScreeningRoom {
 			return date;
 		}
 
-		public LinkedList<Integer> getSessionIDs() {
-			return sessionIDs;
+		public LinkedList<Integer> getSessionIDList() {
+			return sessionIDList;
 		}
 	}
 	
@@ -100,7 +100,7 @@ public class ScreeningRoom {
 		
 		while (time.plusMinutes(dur).isBefore(closingDateTime)) {
 			Session ses = new Session(movieID, this.ID, date, LocalTime.from(time));
-			sesEn.sessionIDs.add(ses.getID());
+			sesEn.sessionIDList.add(ses.getID());
 			time = LocalDateTime.from(time.plusMinutes(dur)); 
 		}
 		if (sessionEntries.isEmpty()) {
@@ -136,7 +136,7 @@ public class ScreeningRoom {
 			return;
 		}
 		
-		for (int sesid : sesEn.sessionIDs) {
+		for (int sesid : sesEn.sessionIDList) {
 			Session ses = Session.getByID(sesid);
 			System.out.println(ses);
 		}
