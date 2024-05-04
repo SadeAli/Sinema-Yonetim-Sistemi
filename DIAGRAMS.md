@@ -8,4 +8,5 @@ Images may not be up to date. Click on them to see the latest version.
 
 ## Design Diagrams
 
-- [![Database](diag/database.png)](https://drawsql.app/teams/mecpine-inc/diagrams/database)
+-Database (Entity Relationship)
+[![Database](diag/database.png)](https://drawsql.app/teams/mecpine-inc/diagrams/database)
