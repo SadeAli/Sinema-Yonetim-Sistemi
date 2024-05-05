@@ -25,7 +25,7 @@ public class Session {
 		this.startTime = LocalTime.from(startTime);
 		this.date = LocalDate.from(date);
 		
-		duration = extendedDuration(Movie.getByID(movieID).getDuration());
+		// duration = extendedDuration(Movie.getByID(movieID).getDuration());
 		
 		lastID++;
 		ID = lastID;
@@ -80,7 +80,7 @@ public class Session {
 
 	@Override
 	public String toString() {
-		return "Session [ID=" + ID + ", movieID=" + movieID + ", movieName=" + Movie.getByID(movieID).getName() + ", screeningRoomID=" + screeningRoomID + ", date="
+		return "Session [ID=" + ID + ", movieID=" + movieID + ", movieName=" + "Movie.getByID(movieID).getName()" + ", screeningRoomID=" + screeningRoomID + ", date="
 				+ date +", startTime="
 				+ startTime + ", duration=" + duration + "]";
 	}

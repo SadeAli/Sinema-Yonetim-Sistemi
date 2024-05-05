@@ -4,12 +4,13 @@ import java.awt.*;
 import java.util.*;
 import java.awt.event.*;
 import java.time.LocalDate;
+import java.util.List; // Add this import statement
 
 /**
  * Represents a window for selecting movies.
  * 
  * This window displays a list of movies and provides options for searching, filtering, and sorting the movies.
- */
+ */ 
 public class MovieSelectionPanel extends JPanel {
 
     private CinemaGUI parent;
@@ -20,7 +21,7 @@ public class MovieSelectionPanel extends JPanel {
     private JScrollPane scrollPane;
 
     // list of movies
-    private LinkedList<Movie> movieList;
+    private List<Movie> movieList;
     private LocalDate dateFilter = LocalDate.now();
 
     /**
@@ -51,9 +52,10 @@ public class MovieSelectionPanel extends JPanel {
         scrollPane.setPreferredSize(new Dimension(300, 300)); // set a preferred size
         add(scrollPane, BorderLayout.CENTER);
 
-        movieList = Movie.getMovies();
+        movieList = DatabaseManager.getAllRows("movie", Movie.getResultSetParser());
     }
  
+
     /**
      * Creates a panel for a movie.
      * @param movie The movie to create the panel for.

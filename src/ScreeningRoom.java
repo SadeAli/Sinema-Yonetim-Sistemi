@@ -154,7 +154,7 @@ public class ScreeningRoom {
 
 		SessionEntry sessionEntry = new SessionEntry(movieID, date /* validatedDate */);
 
-		int extendedDuration = Session.extendedDuration(Movie.getByID(movieID).getDuration());
+		// int extendedDuration = Session.extendedDuration(Movie.getByID(movieID).getDuration());
 
 		return false;
 	}

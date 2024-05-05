@@ -7,7 +7,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class DatabaseManager {
-	private static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine_demo.db";
+	private static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine_fake.db";
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(SQLITE_JDBC_URL);

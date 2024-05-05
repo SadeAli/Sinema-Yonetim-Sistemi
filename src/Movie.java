@@ -54,7 +54,7 @@ public class Movie{
 		this.release = release;
 		this.lastShowDay = lastShowDay;
 		this.rating = rating;
-		this.rateNumber = rateNumber;
+		this.rateCount = rateNumber;
 	}
 
     // Getters
@@ -131,7 +131,7 @@ public class Movie{
     }
 
 	// Returns method for parsing a ResultSet and constructing a movie object
-	public static ResultSetParser<Movie> getResultSetParser() throws SQLException {
+	public static ResultSetParser<Movie> getResultSetParser() {
 		return resultSet -> {
 			int id = resultSet.getInt(1);
 			String name = resultSet.getString(2);
