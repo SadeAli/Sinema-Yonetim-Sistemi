@@ -1,5 +1,6 @@
 import javax.swing.JFrame;
 import javax.swing.JPanel;
+import javax.swing.JButton;
 
 import java.awt.CardLayout;
 
@@ -8,8 +9,12 @@ public class CinemaGUI extends JFrame {
     private CardLayout m_cardLayout = new CardLayout();
     
     private MainMenuPanel mainMenuPanel;
-    private MovieSelectionPanel movieSelectionPanel;
+    private TicketSellingPanel ticketSellingPanel;
     private MovieRatingPanel movieRatingPanel;
+
+    public static void main(String[] args) {
+        CinemaGUI cinemaGUI = new CinemaGUI();
+    }
 
     CinemaGUI() {
         setSize(1000, 800);
@@ -25,29 +30,56 @@ public class CinemaGUI extends JFrame {
         mainPanel.add("Ana Menü", mainMenuPanel);
         
         // tabbed pane 1 is the movie selection panel
-        movieSelectionPanel = new MovieSelectionPanel(this, getSize().width, getSize().height, 1);
-        mainPanel.add("Film Seç", movieSelectionPanel);
+        ticketSellingPanel = new TicketSellingPanel(this, getSize().width, getSize().height);
+        mainPanel.add("Film Seç", ticketSellingPanel);
 
         // tabbed pane 2 is the movie rating panel
         movieRatingPanel = new MovieRatingPanel(this, getSize().width, getSize().height);
         mainPanel.add("Film Değerlendir", movieRatingPanel);
 
-        // tabbed pane 3 is the movie review panel
+        // tabbed pane 3 is the admin login panel
         
-        // show the main menu by default
-        m_cardLayout.show(mainPanel, "Ana Menü");
+        showMainMenu();
         
         // add the main panel to the frame
         add(mainPanel);
-        
+
         setVisible(true);
     }
 
-    void updateState(String state) {
-        m_cardLayout.show(mainPanel, state);
+    public void showMainMenu() {
+        m_cardLayout.show(mainPanel, "Ana Menü");
     }
 
-    void updateMovieList() {
-        movieSelectionPanel.updateMovies();
+    private class MainMenuPanel extends JPanel {
+        MainMenuPanel(CinemaGUI parent, int width, int height) {
+            setLayout(null);
+    
+            // center 3 buttons with 100px width and 50px height horizontally
+            int buttonWidth = 150;
+            int buttonHeight = 50;
+    
+            int buttonX = (width - buttonWidth) / 2;
+            int buttonY = (height - buttonHeight) / 2 - 200;
+    
+            // create 3 buttons
+            JButton button1 = new JButton("Film Seç");
+            button1.setBounds(buttonX - (int)(1.5 * buttonWidth), buttonY, buttonWidth, buttonHeight);
+            button1.addActionListener(e -> {
+                m_cardLayout.show(mainPanel, "Film Seç");
+                ticketSellingPanel.onVisible();
+            });
+            add(button1);
+    
+            JButton button2 = new JButton("Film Değerlendir");
+            button2.setBounds(buttonX, buttonY, buttonWidth, buttonHeight);
+            button2.addActionListener(e -> m_cardLayout.show(mainPanel, "Film Değerlendir"));
+            add(button2);
+    
+            JButton button3 = new JButton("Admin Girişi");
+            button3.setBounds(buttonX + (int)(1.5 * buttonWidth), buttonY, buttonWidth, buttonHeight);
+            button3.addActionListener(e -> m_cardLayout.show(mainPanel, "Admin Girişi"));
+            add(button3);
+        }
     }
 }
