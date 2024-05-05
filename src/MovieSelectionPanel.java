@@ -51,13 +51,8 @@ public class MovieSelectionPanel extends JPanel {
         scrollPane.getVerticalScrollBar().setUnitIncrement(unitIncrement);
         scrollPane.setPreferredSize(new Dimension(300, 300)); // set a preferred size
         add(scrollPane, BorderLayout.CENTER);
-        
-        try {
-            movieList = DatabaseManager.getAllRows("movie", Movie.getResultSetParser());
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        movieList = DatabaseManager.getAllRows("movie", Movie.getResultSetParser());
     }
  
 
