@@ -14,8 +14,8 @@ public class Movie {
 	private LocalDate lastShowDay; //inclusive //(a fixed duration may be used instead of date) public static final timeOut = 60; //days
 	private float rating;
 	private static final int rateUpperLimit = 5; //inclusive
-	private static final int rateLowerLimit = 0; //inclusive
-	private int rateNumber;
+	private static final int rateLowerLimit = 1; //inclusive
+	private int rateCount;
 	private static LinkedList<Movie> movies = new LinkedList<>();
 
 
@@ -36,7 +36,7 @@ public class Movie {
 		lastID++;
 		ID = lastID;
 		rating = 0;
-		rateNumber = 0;
+		rateCount = 0;
 		movies.add(this);
     }
 
@@ -67,15 +67,16 @@ public class Movie {
     }
 
     // Method to add a rating to the movie
-    public boolean addRating(int newRate) {
+    public boolean addRating(int newRate, int ratingCount) {
         if (newRate > rateUpperLimit || newRate < rateLowerLimit) {
 			// Invalid rating value, must be between 0 and 5 (inclusive)
             return false;
         }
-        rateNumber++;
+
+        rateCount += ratingCount;
         
         // To prevent overflow
-        rating = rating + (newRate - rating) / rateNumber;
+        rating = rating + (newRate - rating) / this.rateCount;
         return true;
     }
 
@@ -116,7 +117,12 @@ public class Movie {
     public String toString() {
         // Method to convert the movie object to a string representation
         return "Movie [ID=" + ID + ", name=" + name + ", duration=" + duration + ", release=" + release
-                + ", lastShowDay=" + lastShowDay + ", rating=" + rating + ", rateNumber=" + rateNumber + "]";
+                + ", lastShowDay=" + lastShowDay + ", rating=" + rating + ", rateNumber=" + rateCount + "]";
+    }
+
+    // getter for movies
+    public static LinkedList<Movie> getMovies() {
+        return movies;
     }
 }    
 
