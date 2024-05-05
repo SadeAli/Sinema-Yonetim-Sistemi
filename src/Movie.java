@@ -1,13 +1,15 @@
 // Movie class
 
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.LinkedList;
 
 //TODO change ID with id in all classes
 
-public class Movie {
-    private int ID;
-	private static int lastID = 0;
+public class Movie{
+    private int id;
 	private String name;
 	private int duration;	//minutes
 	private LocalDate release;	
@@ -33,17 +35,32 @@ public class Movie {
 		this.release = release;
 		this.lastShowDay = lastShowDay;
 		
-		lastID++;
-		ID = lastID;
 		rating = 0;
 		rateNumber = 0;
 		movies.add(this);
     }
 
+	// Constructor for database
+	private Movie(int id, String name, int duration, LocalDate release, LocalDate lastShowDay, float rating, int rateNumber) {
+		//TODO Check if arguemnts are not null
+		//TODO Check if the movie name is unique
+		//TODO Check if the movie name is valid (such as not containing special characters, not too long, etc.)
+		//TODO Check if the duration is a positive integer
+		//TODO Check if the release date is before the last show day
+		//TODO Check if the last show day is after the current date (if necessary, based on the project requirements)
+		this.id = id;
+		this.name = name;
+		this.duration = duration;
+		this.release = release;
+		this.lastShowDay = lastShowDay;
+		this.rating = rating;
+		this.rateNumber = rateNumber;
+	}
+
     // Getters
 
-    public int getID() {
-        return ID;
+    public int getId() {
+        return id;
     }
 
     public String getName() {
@@ -80,9 +97,9 @@ public class Movie {
     }
 
 	// Method to check if a movie with the given ID exists
-	public static boolean exists(int ID) {
+	public static boolean exists(int id) {
 		for (Movie movie : movies) {
-			if (movie.ID == ID) {
+			if (movie.id == id) {
 				return true;
 			}
 		}
@@ -90,9 +107,9 @@ public class Movie {
 	}
 
     // Method to get a movie by its ID
-    public static Movie getByID(int ID) {
+    public static Movie getById(int id) {
         for (Movie movie : movies) {
-            if (movie.ID == ID) {
+            if (movie.id == id) {
                 return movie;
             }
         }
@@ -112,10 +129,28 @@ public class Movie {
         }
     }
 
+	// Returns method for parsing a ResultSet and constructing a movie object
+	public static ResultSetParser<Movie> getResultSetParser() throws SQLException {
+		return resultSet -> {
+			int id = resultSet.getInt(1);
+			String name = resultSet.getString(2);
+			int duration = resultSet.getInt(3);
+			LocalDate release = LocalDate.parse(
+				resultSet.getString(4),
+				DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+			LocalDate lastShowDay = LocalDate.parse(
+				resultSet.getString(5),
+				DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+			float rating = resultSet.getFloat(6);
+			int rateNumber = resultSet.getInt(7);
+			return new Movie(id, name, duration, release, lastShowDay, rating, rateNumber);
+		};
+	}
+
     @Override
     public String toString() {
         // Method to convert the movie object to a string representation
-        return "Movie [ID=" + ID + ", name=" + name + ", duration=" + duration + ", release=" + release
+        return "Movie [id=" + id + ", name=" + name + ", duration=" + duration + ", release=" + release
                 + ", lastShowDay=" + lastShowDay + ", rating=" + rating + ", rateNumber=" + rateNumber + "]";
     }
 }    
