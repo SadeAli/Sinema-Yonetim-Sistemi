@@ -9,21 +9,9 @@ public class Session {
 	private LocalTime startTime;
 	private int extendedDuration;
 
-	public Session(int movieID, int screeningRoomID, LocalDate date, LocalTime startTime) {
+	public Session(int movieId, int screeningRoomId, LocalDate date, LocalTime startTime) {
 
 		//TODO Check if the screening room is available at the given time.
 		
-		this.movieID = movieID;
-		this.screeningRoomID = screeningRoomID;
-		this.startTime = LocalTime.from(startTime);
-		this.date = LocalDate.from(date);
-		
-		// duration = extendedDuration(Movie.getByID(movieID).getDuration());
-		
-		lastID++;
-		ID = lastID;
-		
-		sessions.add(this);
-	
 	}
 }

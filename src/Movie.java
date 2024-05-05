@@ -2,22 +2,43 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
+@TableName ("movie")
 public class Movie {
-	public static final String TABLE_NAME = "movie";
 	public static final int RATING_UPPER_LIMIT = 5; //inclusive
 	public static final int RATING_LOWER_LIMIT = 1; //inclusive
 	
+	@ColumnName("id")
 	private int id;
+
+	@ColumnName("name")	
 	private String name;
+
+	@ColumnName("duration")
 	private int duration;	//minutes
+
+	@ColumnName("release_date")
 	private LocalDate release;	//inclusive
+
+	@ColumnName("last_screening_date")
 	private LocalDate lastScreeningDate; //inclusive
+
+	@ColumnName("rating")
 	private float rating;
+
+	@ColumnName("rating_count")
 	private int ratingCount;
 
 	// Constructor
+
+	// Private constructor to prevent instantiation
+	// of the class from outside without necessary arguments
+	// This method is used to create a new movie object
+	// by database manager
+	private Movie () {}
+
 	public Movie(String name, int duration, LocalDate release,
 					LocalDate lastScreeningDate) {
 		//TODO Check if the movie name is unique
@@ -79,8 +100,13 @@ public class Movie {
         return ratingCount;
     }
 
-	public List<Movie> getAllMovies() {
-		return DatabaseManager.getAllRows(TABLE_NAME, getResultSetParser());
+	public static List<Movie> getAllMovies() {
+		try {
+			return DatabaseManager.getAllRows(Movie.class);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return new ArrayList<Movie>();
+		}
 	}
 
 	// Setters
@@ -105,9 +131,9 @@ public class Movie {
 
 	// Method to check if a movie is currently showing
 	public boolean isCurrentlyShowing() {
-		return LocalDate.now().isBefore(lastScreeningDate);
+		return LocalDate.now().isBefore(lastScreeningDate) && LocalDate.now().isAfter(release);
 	}
-	
+	/* 
 	// Returns method for parsing a ResultSet and constructing a movie object
 	public static ResultSetParser<Movie> getResultSetParser() {
 		return resultSet -> {
@@ -121,10 +147,10 @@ public class Movie {
 				resultSet.getString(5),
 				DateTimeFormatter.ofPattern("yyyy-MM-dd"));
 			float rating = resultSet.getFloat(6);
-			int rateNumber = resultSet.getInt(7);
-			return new Movie(id, name, duration, release, lastShowDay, rating, rateNumber);
+			int ratingNumber = resultSet.getInt(7);
+			return new Movie(id, name, duration, release, lastShowDay, rating, ratingNumber);
 		};
-	}
+	}*/
 
 	//TODO Method to check if a movie with the given id exists
     //TODO Method to get a movie by its id
