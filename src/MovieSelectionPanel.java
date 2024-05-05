@@ -13,7 +13,7 @@ import java.util.List; // Add this import statement
  */ 
 public class MovieSelectionPanel extends JPanel {
 
-    private CinemaGUI parent;
+    private TicketSellingPanel parent;
     private int width;
 
     // panel where the movies will be displayed
@@ -31,7 +31,7 @@ public class MovieSelectionPanel extends JPanel {
      * @param height        The height of the window.
      * @param unitIncrement The scroll speed of the window.
      */
-    MovieSelectionPanel(CinemaGUI parent, int width, int height, int unitIncrement) {
+    MovieSelectionPanel(TicketSellingPanel parent, int width, int height, int unitIncrement) {
         this.parent = parent;
         this.width = width;
 
@@ -52,7 +52,8 @@ public class MovieSelectionPanel extends JPanel {
         scrollPane.setPreferredSize(new Dimension(300, 300)); // set a preferred size
         add(scrollPane, BorderLayout.CENTER);
 
-        movieList = DatabaseManager.getAllRows("movie", Movie.getResultSetParser());
+        updateMovieList();
+        reapintMoviePanels();
     }
  
 
@@ -69,8 +70,7 @@ public class MovieSelectionPanel extends JPanel {
         moviePanel.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
-                // handle movie selection
-                System.out.println("Selected movie: " + movie.getName() + "\nDate: " + dateFilter.toString());
+                parent.selectMovie(movie, dateFilter);
             }
         });
 
@@ -94,7 +94,7 @@ public class MovieSelectionPanel extends JPanel {
      */
     public void sortMoviesByName() {
         Collections.sort(movieList, Comparator.comparing(Movie::getName));
-        updateMovies();
+        reapintMoviePanels();
     }
 
     /**
@@ -102,7 +102,7 @@ public class MovieSelectionPanel extends JPanel {
      */
     public void sortMoviesByRating() {
         Collections.sort(movieList, Comparator.comparing(Movie::getRating).reversed());
-        updateMovies();
+        reapintMoviePanels();
     }
 
     /**
@@ -110,18 +110,22 @@ public class MovieSelectionPanel extends JPanel {
      */
     public void sortMoviesByReleaseDate() {
         Collections.sort(movieList, Comparator.comparing(Movie::getRelease).reversed());
-        updateMovies();
+        reapintMoviePanels();
     }
 
     public void reverseOrder() {
         Collections.reverse(movieList);
-        updateMovies();
+        reapintMoviePanels();
+    }
+
+    private void updateMovieList() {
+        movieList = DatabaseManager.getAllRows("movie", Movie.getResultSetParser());
     }
 
     /**
      * Updates the layout of the movie selection window.
      */
-    public void updateMovies() {
+    public void reapintMoviePanels() {
         movieListingPanel.removeAll();
 
         for (Movie movie : movieList) {
@@ -131,10 +135,13 @@ public class MovieSelectionPanel extends JPanel {
 
         movieListingPanel.revalidate();
         movieListingPanel.repaint();
-        movieListingPanel.updateUI();
     }
 
     public void goBack() {
-        parent.updateState("Ana Menü");
+        parent.showMainMenu();
+    }
+
+    public void onVisible() {
+        movieList = DatabaseManager.getAllRows("movie", Movie.getResultSetParser());
     }
 }

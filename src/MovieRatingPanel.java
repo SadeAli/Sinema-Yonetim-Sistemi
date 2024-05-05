@@ -100,7 +100,7 @@ public class MovieRatingPanel extends JPanel {
                 // submit the rating
                 System.out.println("Rating submitted: " + rating + " stars");
                 // go back to the main menu
-                parent.updateState("Ana Menü");
+                parent.showMainMenu();
             }
         });
         buttonPanel.add(submitButton, BorderLayout.EAST);
@@ -111,7 +111,7 @@ public class MovieRatingPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 // go back to the main menu
-                parent.updateState("Ana Menü");
+                parent.showMainMenu();
             }
         });
         buttonPanel.add(backButton, BorderLayout.WEST);
