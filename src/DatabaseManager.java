@@ -25,22 +25,21 @@ public class DatabaseManager {
 		return false;
     }
 
-public static <T> List<T> getAllRows(String tableName, ResultSetParser<T> parser) {
-    List<T> objects = new ArrayList<>();
-	String query = "SELECT * FROM " + tableName;
+	public static <T> List<T> getAllRows(String tableName, ResultSetParser<T> parser) {
+		List<T> objects = new ArrayList<>();
+		String query = "SELECT * FROM " + tableName;
 
-    try (	Connection connection = getConnection();
-			Statement statement = connection.createStatement();
-			ResultSet resultSet = statement.executeQuery(query);) {
-        while (resultSet.next()) {
-            T object = parser.parse(resultSet);
-            objects.add(object);
-        }
-    } catch (SQLException e) {
-        System.err.println("Unable to get rows: " + e.getMessage());
-    }
-    return objects;
-}
-
+		try (	Connection connection = getConnection();
+				Statement statement = connection.createStatement();
+				ResultSet resultSet = statement.executeQuery(query);) {
+			while (resultSet.next()) {
+				T object = parser.parse(resultSet);
+				objects.add(object);
+			}
+		} catch (SQLException e) {
+			System.err.println("Unable to get rows: " + e.getMessage());
+		}
+		return objects;
+	}
 	
 }

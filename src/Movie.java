@@ -1,28 +1,25 @@
-// Movie class
-
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.LinkedList;
+import java.time.LocalDate;
+import java.util.List;
 
-//TODO change ID with id in all classes
-
-public class Movie{
-    private int id;
+public class Movie {
+	public static final String TABLE_NAME = "movie";
+	public static final int RATING_UPPER_LIMIT = 5; //inclusive
+	public static final int RATING_LOWER_LIMIT = 1; //inclusive
+	
+	private int id;
 	private String name;
 	private int duration;	//minutes
-	private LocalDate release;	
-	private LocalDate lastShowDay; //inclusive //(a fixed duration may be used instead of date) public static final timeOut = 60; //days
+	private LocalDate release;	//inclusive
+	private LocalDate lastScreeningDate; //inclusive
 	private float rating;
-	private static final int rateUpperLimit = 5; //inclusive
-	private static final int rateLowerLimit = 1; //inclusive
-	private int rateCount;
-	private static LinkedList<Movie> movies = new LinkedList<>();
+	private int ratingCount;
 
-
-    // Constructor
-    public Movie(String name, int duration, LocalDate release, LocalDate lastShowDay) {
+	// Constructor
+	public Movie(String name, int duration, LocalDate release,
+					LocalDate lastScreeningDate) {
 		//TODO Check if the movie name is unique
 		//TODO Check if the duration is a positive integer
 		//TODO Check if the release date is before the last show day
@@ -30,36 +27,31 @@ public class Movie{
 		//TODO Check if arguemnts are not null
 		//TODO Check if the movie name is valid (such as not containing special characters, not too long, etc.)
 
-        this.name = name;
+		//TODO Add to the database
+
+		this.name = name;
 		this.duration = duration;
 		this.release = release;
-		this.lastShowDay = lastShowDay;
-		
-		rating = 0;
-		rateCount = 0;
-		movies.add(this);
-    }
+		this.lastScreeningDate = lastScreeningDate;
+		this.rating = 0;
+		this.ratingCount = 0;
+	}
 
 	// Constructor for database
-	private Movie(int id, String name, int duration, LocalDate release, LocalDate lastShowDay, float rating, int rateNumber) {
-		//TODO Check if arguemnts are not null
-		//TODO Check if the movie name is unique
-		//TODO Check if the movie name is valid (such as not containing special characters, not too long, etc.)
-		//TODO Check if the duration is a positive integer
-		//TODO Check if the release date is before the last show day
-		//TODO Check if the last show day is after the current date (if necessary, based on the project requirements)
+	private Movie(int id, String name, int duration, LocalDate release, 
+				LocalDate lastScreeningDate, float rating, int ratingCount) {
 		this.id = id;
 		this.name = name;
 		this.duration = duration;
 		this.release = release;
-		this.lastShowDay = lastShowDay;
+		this.lastScreeningDate = lastScreeningDate;
 		this.rating = rating;
-		this.rateCount = rateNumber;
+		this.ratingCount = ratingCount;
 	}
 
-    // Getters
+	// Getters
 
-    public int getId() {
+	public int getId() {
         return id;
     }
 
@@ -75,61 +67,47 @@ public class Movie{
         return release;
     }
 
-    public LocalDate getLastShowDay() {
-        return lastShowDay;
+    public LocalDate getLastScreeningDate() {
+        return lastScreeningDate;
     }
 
     public float getRating() {
         return rating;
     }
 
+    public float getRatingCount() {
+        return ratingCount;
+    }
+
+	public List<Movie> getAllMovies() {
+		return DatabaseManager.getAllRows(TABLE_NAME, getResultSetParser());
+	}
+
+	// Setters
+
+
+	
     // Method to add a rating to the movie
     public boolean addRating(int newRate, int ratingCount) {
-        if (newRate > rateUpperLimit || newRate < rateLowerLimit) {
+        //TODO Update rating and ticket.is_rated in the database
+		
+		if (newRate > RATING_UPPER_LIMIT || newRate < RATING_LOWER_LIMIT) {
 			// Invalid rating value, must be between 0 and 5 (inclusive)
             return false;
         }
 
-        rateCount += ratingCount;
+        this.ratingCount += ratingCount;
         
         // To prevent overflow
-        rating = rating + (newRate - rating) / this.rateCount;
+        rating = rating + (newRate - rating) / ((float) this.ratingCount / ratingCount);
         return true;
     }
 
-	// Method to check if a movie with the given ID exists
-	public static boolean exists(int id) {
-		for (Movie movie : movies) {
-			if (movie.id == id) {
-				return true;
-			}
-		}
-		return false;
+	// Method to check if a movie is currently showing
+	public boolean isCurrentlyShowing() {
+		return LocalDate.now().isBefore(lastScreeningDate);
 	}
-
-    // Method to get a movie by its ID
-    public static Movie getById(int id) {
-        for (Movie movie : movies) {
-            if (movie.id == id) {
-                return movie;
-            }
-        }
-        return null;
-    }
-
-    // Method to check if a movie is currently showing
-    public boolean isCurrentlyShowing() {
-        LocalDate currentDate = LocalDate.now();
-        return currentDate.isBefore(lastShowDay);
-    }
-
-    // Method to display all the movies
-    public static void displayAllMovies() {
-        for (Movie movie : movies) {
-            System.out.println(movie);
-        }
-    }
-
+	
 	// Returns method for parsing a ResultSet and constructing a movie object
 	public static ResultSetParser<Movie> getResultSetParser() {
 		return resultSet -> {
@@ -148,16 +126,17 @@ public class Movie{
 		};
 	}
 
-    @Override
+	//TODO Method to check if a movie with the given id exists
+    //TODO Method to get a movie by its id
+
+	@Override
     public String toString() {
         // Method to convert the movie object to a string representation
-        return "Movie [id=" + id + ", name=" + name + ", duration=" + duration + ", release=" + release
-                + ", lastShowDay=" + lastShowDay + ", rating=" + rating + ", rateNumber=" + rateCount + "]";
+        return "Movie ID: " + id + "\n" +
+				"Name: " + name + "\n" +
+				"Duration: " + duration + " minutes\n" +
+				"Release Date: " + release + "\n" +
+				"Last Screening Date: " + lastScreeningDate + "\n" +
+				"Rating: " + rating + " (" + ratingCount + " ratings)\n";
     }
-
-    // getter for movies
-    public static LinkedList<Movie> getMovies() {
-        return movies;
-    }
-}    
-
+}	
