@@ -54,7 +54,7 @@ public class Movie{
 		this.release = release;
 		this.lastShowDay = lastShowDay;
 		this.rating = rating;
-		this.rateNumber = rateNumber;
+		this.rateCount = rateNumber;
 	}
 
     // Getters

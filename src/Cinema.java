@@ -7,12 +7,16 @@ import java.util.List;
 
 public class Cinema {
     public static void main(String[] args) {
-
-        // create the main window
-        CinemaGUI window = new CinemaGUI();
-
-        for (int i = 20; i > 0; i--) {
-            Movie movie = new Movie("Movie " + i, 120, LocalDate.now().minusDays(i), LocalDate.now().plusDays(30));
+        try {
+            // create the main window
+            CinemaGUI window = new CinemaGUI();
+            
+            for (int i = 20; i > 0; i--) {
+                Movie movie = new Movie("Movie " + i, 120, LocalDate.now().minusDays(i), LocalDate.now().plusDays(30));
+            }
+        }
+        catch (Exception e) {
+            e.printStackTrace();
         }
     }
 }
