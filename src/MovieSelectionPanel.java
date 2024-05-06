@@ -138,6 +138,9 @@ public class MovieSelectionPanel extends JPanel {
         movieList = Movie.getAllMovies();
     }
 
+    // private void loadFilteredMovies() {
+        // movieList = DatabaseManager.getRowsFiltered(
+
     /**
      * Updates the layout of the movie selection window.
      */
@@ -234,6 +237,9 @@ public class MovieSelectionPanel extends JPanel {
 
                 JButton applyButton = new JButton("Apply");
                 applyButton.addActionListener(e -> {
+
+                    dateFilter = dateModel.getDate().toInstant().atZone(Calendar.getInstance().getTimeZone().toZoneId()).toLocalDate();
+                    
                     String selectedSortOption = (String) sortComboBox.getSelectedItem();
 
                     switch (selectedSortOption) {
