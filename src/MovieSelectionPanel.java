@@ -18,6 +18,7 @@ import java.awt.BorderLayout;
 import javax.swing.SpinnerDateModel;
 import javax.swing.JSpinner;
 import java.util.Calendar;
+import javax.swing.JSpinner.DateEditor;
 
 
 /**
@@ -208,6 +209,8 @@ public class MovieSelectionPanel extends JPanel {
                 dateModel.setCalendarField(Calendar.DAY_OF_MONTH);
                 JSpinner dateSpinner = new JSpinner(dateModel);
                 dateSpinner.setPreferredSize(new Dimension(300, 50));
+                DateEditor editor = new JSpinner.DateEditor(dateSpinner, "dd/MM/yy");
+                dateSpinner.setEditor(editor);
                 add(dateSpinner);
 
                 searchField = new JTextField();
