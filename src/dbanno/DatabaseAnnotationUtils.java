@@ -1,3 +1,5 @@
+package dbanno;
+
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
@@ -5,11 +7,10 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
-import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class AnnotationUtils {
+public class DatabaseAnnotationUtils {
 
     public static String getTableName(Class<?> clazz) {
         TableName tableNameAnnotation = clazz.getAnnotation(TableName.class);
