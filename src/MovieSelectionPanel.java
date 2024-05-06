@@ -20,6 +20,11 @@ import javax.swing.JSpinner;
 import java.util.Calendar;
 import javax.swing.JSpinner.DateEditor;
 
+import java.sql.SQLException; // Add this import statement
+import java.time.LocalDate; // Add this import statement
+import java.util.Map; // Add this import statement
+import java.util.HashMap; // Add this import statement
+
 
 /**
  * Represents a window for selecting movies.
@@ -99,34 +104,10 @@ public class MovieSelectionPanel extends JPanel {
         moviePanel.add(movieRating);
 
         // add movie release date
-        JLabel movieRelease = new JLabel("Release: " + movie.getRelease().toString());
+        JLabel movieRelease = new JLabel("Release: " + movie.getReleaseDate().toString());
         moviePanel.add(movieRelease);
 
         return moviePanel;
-    }
-
-    /**
-     * Sorts the movies by name.
-     */
-    public void sortMoviesByName() {
-        Collections.sort(movieList, Comparator.comparing(Movie::getName));
-        reapintMoviePanels();
-    }
-
-    /**
-     * Sorts the movies by rating.
-     */
-    public void sortMoviesByRating() {
-        Collections.sort(movieList, Comparator.comparing(Movie::getRating).reversed());
-        reapintMoviePanels();
-    }
-
-    /**
-     * Sorts the movies by release date.
-     */
-    public void sortMoviesByReleaseDate() {
-        Collections.sort(movieList, Comparator.comparing(Movie::getRelease).reversed());
-        reapintMoviePanels();
     }
 
     public void reverseOrder() {
@@ -239,26 +220,37 @@ public class MovieSelectionPanel extends JPanel {
                 applyButton.addActionListener(e -> {
 
                     dateFilter = dateModel.getDate().toInstant().atZone(Calendar.getInstance().getTimeZone().toZoneId()).toLocalDate();
+                    System.out.println(dateFilter.toString());
                     
                     String selectedSortOption = (String) sortComboBox.getSelectedItem();
+                    String sortQuery = "";
 
                     switch (selectedSortOption) {
                         case "Sort by Name":
-                            parent.sortMoviesByName();
+                            sortQuery = "name";
                             break;
                         case "Sort by Rating":
-                            parent.sortMoviesByRating();
+                            sortQuery = "rating";
                             break;
                         case "Sort by Release Date":
-                            parent.sortMoviesByReleaseDate();
+                            sortQuery = "release";
                             break;
                     }
+
+                    try {
+                        movieList = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class, Map.of("releaseDate", dateFilter.toString()), sortQuery);
+                    } catch (SQLException | IllegalAccessException | InstantiationException | NoSuchFieldException ex) {
+                        ex.printStackTrace();
+                    }
+
+                    reapintMoviePanels();
+                    
                     setVisible(false);
                 });
 
                 JButton cancelButton = new JButton("Cancel");
                 cancelButton.addActionListener(e -> {
-                    setVisible(false);
+                    setVisible(false);  
                 });
 
                 buttonPanel.add(applyButton, BorderLayout.EAST);
