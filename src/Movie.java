@@ -105,7 +105,7 @@ public class Movie {
 			return DatabaseManager.getAllRows(Movie.class);
 		} catch (Exception e) {
 			e.printStackTrace();
-			return new ArrayList<Movie>();
+			return new ArrayList<>();
 		}
 	}
 

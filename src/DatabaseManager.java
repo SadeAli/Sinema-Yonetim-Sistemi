@@ -12,6 +12,7 @@ import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 public class DatabaseManager {
 	private static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine_fake.db";
@@ -71,25 +72,10 @@ public class DatabaseManager {
 	 */
 	public static <T> List<T> getAllRows(Class<T> clazz) throws SQLException, IllegalAccessException, InstantiationException, NoSuchFieldException {
 		// Get the table name from the TableName annotation
-		TableName tableNameAnnotation = clazz.getAnnotation(TableName.class);
-		if (tableNameAnnotation == null) {
-			throw new IllegalArgumentException("Class " + clazz.getName() + " does not have a TableName annotation");
-		}
-		String tableName = tableNameAnnotation.value();
+		String tableName = AnnotationUtils.getTableName(clazz);
 	
 		// Get the column names from the fields with the ColumnName annotation
-		List<String> columnNameList = new ArrayList<>();
-		Field[] fields = clazz.getDeclaredFields();
-		for (Field field : fields) {
-			ColumnName columnNameAnnotation = field.getAnnotation(ColumnName.class);
-			if (columnNameAnnotation != null) {
-				columnNameList.add(columnNameAnnotation.value());
-			}
-		}
-		if (columnNameList.isEmpty()) {
-			throw new IllegalArgumentException("Class " + clazz.getName() + " does not have any fields with the ColumnName annotation");
-		}
-		String[] columnNameArray = columnNameList.toArray(new String[0]);
+		Map<String, Field> columnNamesAndFields = AnnotationUtils.getColumnNamesAndFields(clazz);
 	
 		// Build the SQL query
 		String query = "SELECT * FROM " + tableName;
@@ -101,63 +87,14 @@ public class DatabaseManager {
 	
 			// Create a list to hold the result objects
 			List<T> result = new ArrayList<>();
-	
+
 			// For each row in the result set, create an object and add it to the list
 			while (rs.next()) {
 				// Create a new object of type T
-				T object = null;
-				try {
-					Constructor<T> constructor = clazz.getDeclaredConstructor();
-					constructor.setAccessible(true);
-					object = clazz.cast(constructor.newInstance());
-					constructor.setAccessible(false);
-				} catch (NoSuchMethodException | IllegalAccessException | 
-						InstantiationException | InvocationTargetException e) {
-					System.err.println("Unable to access constructor: " + e.getMessage());
-					throw new RuntimeException("Unable to create object: " + e.getMessage(), e);
-				} finally {
-					try {
-						clazz.getDeclaredConstructor().setAccessible(false);
-					} catch (NoSuchMethodException e) {
-						System.err.println("Unable to access constructor: " + e.getMessage());
-					}
-				}
+				T object = AnnotationUtils.createNewInstance(clazz);
 
 				// Set the fields of the object based on the column values in the result set
-				for (int i = 0, offset = 0; i < columnNameArray.length; i++) {
-					ColumnName columnNameAnnotation = fields[i + offset].getAnnotation(ColumnName.class);
-					while (columnNameAnnotation == null) {
-						offset++;
-						columnNameAnnotation = fields[i + offset].getAnnotation(ColumnName.class);
-					}
-
-					fields[i + offset].setAccessible(true);
-					Object value;
-					Class<?> type = fields[i + offset].getType();
-					if (type == int.class || type == Integer.class) {
-						value = rs.getInt(i + 1);
-					} else if (type == String.class) {
-						value = rs.getString(i + 1);
-					} else if (type == boolean.class || type == Boolean.class) {
-						value = rs.getBoolean(i + 1);
-					} else if (type == double.class || type == Double.class) {
-						value = rs.getDouble(i + 1);
-					} else if (type == long.class || type == Long.class) {
-						value = rs.getLong(i + 1);
-					} else if (type == float.class || type == Float.class) {
-						value = rs.getFloat(i + 1);
-					} else if (type == LocalDate.class) {
-						value = LocalDate.parse(
-							rs.getString(i + 1),
-							DateTimeFormatter.ofPattern("yyyy-MM-dd"));
-					} else {
-						// Add more cases as needed...
-						throw new IllegalArgumentException("Unsupported field type: " + type.getName());
-					}
-					fields[i + offset].set(object, value);
-					fields[i + offset].setAccessible(false);
-				}
-				result.add(object);
+				result.add((T) AnnotationUtils.setFieldsFromResultSet(columnNamesAndFields, clazz, object, rs));
 			}
 	
 			// Return the list of objects
