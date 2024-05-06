@@ -77,6 +77,61 @@ public class DatabaseManager {
 		}
 	}
 
+	public static <T> List<T> getRowsFilteredAndSortedBy(Class<T> clazz, Map<String, Object> filters, String sortBy) throws SQLException, IllegalAccessException, InstantiationException, NoSuchFieldException {
+		// Get the table name from the TableName annotation
+		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
+	
+		// Get a map of column names and fields from the ColumnName annotations
+		Map<String, Field> columnNamesAndFields = DatabaseAnnotationUtils.getColumnNamesAndFields(clazz);
+	
+		// Build the SQL query
+		StringBuilder query = new StringBuilder("SELECT * FROM " + tableName);
+	
+		// Add the filters to the query
+		if (!filters.isEmpty()) {
+			query.append(" WHERE ");
+			for (String fieldName : filters.keySet()) {
+				Field field = clazz.getDeclaredField(fieldName);
+				String columnName = DatabaseAnnotationUtils.getColumnName(field);
+				query.append(columnName).append(" = ? AND ");
+			}
+			// Remove the last " AND "
+			query.setLength(query.length() - 5);
+		}
+	
+		// Add the sort by clause to the query
+		if (sortBy != null) {
+			Field field = clazz.getDeclaredField(sortBy);
+			String columnName = DatabaseAnnotationUtils.getColumnName(field);
+			query.append(" ORDER BY ").append(columnName);
+		}
+	
+		// Execute the query and get the result set
+		try (Connection connection = getConnection();
+			 PreparedStatement stmt = connection.prepareStatement(query.toString())) {
+	
+			// Set the filter values in the PreparedStatement
+			int index = 1;
+			for (Object value : filters.values()) {
+				stmt.setObject(index++, value);
+			}
+	
+			ResultSet rs = stmt.executeQuery();
+	
+			// Create a list to hold the result objects
+			List<T> result = new ArrayList<>();
+	
+			// For each row in the result set, create a new object and set its fields from the result set
+			while (rs.next()) {
+				T object = DatabaseAnnotationUtils.createNewInstance(clazz);
+				result.add((T) DatabaseAnnotationUtils.setFieldsFromResultSet(columnNamesAndFields, clazz, object, rs));
+			}
+	
+			// Return the list of objects
+			return result;
+		}
+	}
+
 	/**
 	 * Retrieves a row from the specified table by its ID.
 	 *

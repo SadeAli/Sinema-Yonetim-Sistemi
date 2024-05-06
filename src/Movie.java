@@ -23,7 +23,7 @@ public class Movie {
 	private int duration;	//minutes
 
 	@ColumnName("release_date")
-	private LocalDate release;	//inclusive
+	private LocalDate releaseDate;	//inclusive
 
 	@ColumnName("last_screening_date")
 	private LocalDate lastScreeningDate; //inclusive
@@ -55,7 +55,7 @@ public class Movie {
 
 		this.name = name;
 		this.duration = duration;
-		this.release = release;
+		this.releaseDate = release;
 		this.lastScreeningDate = lastScreeningDate;
 		this.rating = 0;
 		this.ratingCount = 0;
@@ -75,8 +75,8 @@ public class Movie {
         return duration;
     }
 
-    public LocalDate getRelease() {
-        return release;
+    public LocalDate getReleaseDate() {
+        return releaseDate;
     }
 
     public LocalDate getLastScreeningDate() {
@@ -122,7 +122,7 @@ public class Movie {
 
 	// Method to check if a movie is currently showing
 	public boolean isCurrentlyShowing() {
-		return LocalDate.now().isBefore(lastScreeningDate) && LocalDate.now().isAfter(release);
+		return LocalDate.now().isBefore(lastScreeningDate) && LocalDate.now().isAfter(releaseDate);
 	}
 
 	//TODO Method to check if a movie with the given id exists
@@ -134,7 +134,7 @@ public class Movie {
         return "Movie ID: " + id + "\n" +
 				"Name: " + name + "\n" +
 				"Duration: " + duration + " minutes\n" +
-				"Release Date: " + release + "\n" +
+				"Release Date: " + releaseDate + "\n" +
 				"Last Screening Date: " + lastScreeningDate + "\n" +
 				"Rating: " + rating + " (" + ratingCount + " ratings)\n";
     }
