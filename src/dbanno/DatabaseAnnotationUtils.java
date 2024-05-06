@@ -20,6 +20,14 @@ public class DatabaseAnnotationUtils {
         return tableNameAnnotation.value();
     }
 
+	public static String getColumnName(Field field) {
+		ColumnName columnNameAnnotation = field.getAnnotation(ColumnName.class);
+		if (columnNameAnnotation == null) {
+			throw new IllegalArgumentException("Field " + field.getName() + " does not have a ColumnName annotation");
+		}
+		return columnNameAnnotation.value();
+	}
+
 	public static Map<String, Field> getColumnNamesAndFields(Class<?> clazz) {
 		Map<String, Field> columnFieldMap = new LinkedHashMap<>();
 		Field[] fields = clazz.getDeclaredFields();

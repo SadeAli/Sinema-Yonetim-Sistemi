@@ -71,8 +71,9 @@ public class ScreeningRoom {
 	}
 
 	public boolean addMovieToDate(LocalDate date, int movieId) {
-		//TODO Complete this method
-		//TODO Add to the database
+		
+		//DatabaseManager.getRowsFiltered();
+
 		return false;
 	}
 
