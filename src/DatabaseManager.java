@@ -14,6 +14,10 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
+import dbanno.ColumnName;
+import dbanno.DatabaseAnnotationUtils;
+import dbanno.TableName;
+
 public class DatabaseManager {
 	private static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine_fake.db";
 
@@ -33,32 +37,6 @@ public class DatabaseManager {
 		return false;
     }
 
-	/*
-	/**
-	 * Retrieves all rows from the specified table in the database.
-	 * 
-	 * @param tableName the name of the table to retrieve rows from
-	 * @param parser the ResultSetParser implementation to parse each row into an object of type T
-	 * @return a list of objects representing the rows retrieved from the table
-	
-	public static <T> List<T> getAllRows(String tableName, ResultSetParser<T> parser) {
-		List<T> objects = new ArrayList<>();
-		String query = "SELECT * FROM " + tableName;
-
-		try (	Connection connection = getConnection();
-				Statement statement = connection.createStatement();
-				ResultSet resultSet = statement.executeQuery(query);) {
-			while (resultSet.next()) {
-				T object = parser.parse(resultSet);
-				objects.add(object);
-			}
-		} catch (SQLException e) {
-			System.err.println("Unable to get rows: " + e.getMessage());
-		}
-		return objects;
-	}
-	*/
-
 	/**
 	 * Retrieves all rows from the database table associated with the given class.
 	 * 
@@ -72,10 +50,10 @@ public class DatabaseManager {
 	 */
 	public static <T> List<T> getAllRows(Class<T> clazz) throws SQLException, IllegalAccessException, InstantiationException, NoSuchFieldException {
 		// Get the table name from the TableName annotation
-		String tableName = AnnotationUtils.getTableName(clazz);
+		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 	
-		// Get the column names from the fields with the ColumnName annotation
-		Map<String, Field> columnNamesAndFields = AnnotationUtils.getColumnNamesAndFields(clazz);
+		// Get a map of column names and fields from the ColumnName annotations
+		Map<String, Field> columnNamesAndFields = DatabaseAnnotationUtils.getColumnNamesAndFields(clazz);
 	
 		// Build the SQL query
 		String query = "SELECT * FROM " + tableName;
@@ -90,11 +68,8 @@ public class DatabaseManager {
 
 			// For each row in the result set, create an object and add it to the list
 			while (rs.next()) {
-				// Create a new object of type T
-				T object = AnnotationUtils.createNewInstance(clazz);
-
-				// Set the fields of the object based on the column values in the result set
-				result.add((T) AnnotationUtils.setFieldsFromResultSet(columnNamesAndFields, clazz, object, rs));
+				T object = DatabaseAnnotationUtils.createNewInstance(clazz);
+				result.add((T) DatabaseAnnotationUtils.setFieldsFromResultSet(columnNamesAndFields, clazz, object, rs));
 			}
 	
 			// Return the list of objects
