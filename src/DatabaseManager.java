@@ -17,6 +17,7 @@ import java.util.Map;
 import dbanno.ColumnName;
 import dbanno.DatabaseAnnotationUtils;
 import dbanno.TableName;
+import java.util.logging.Logger;
 
 public class DatabaseManager {
 	private static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine_fake.db";
@@ -76,8 +77,43 @@ public class DatabaseManager {
 			return result;
 		}
 	}
+	private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class.getName());
 
-	public static <T> List<T> getRowsFilteredAndSortedBy(Class<T> clazz, Map<String, Object> filters, String sortBy) throws SQLException, IllegalAccessException, InstantiationException, NoSuchFieldException {
+
+	private static void setPreparedStatementValue(PreparedStatement stmt, int index, Object value) throws SQLException {
+		if (value instanceof LocalDate) {
+			stmt.setString(index, ((LocalDate) value).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+		} else if (value instanceof Integer) {
+			stmt.setInt(index, (Integer) value);
+		} else if (value instanceof Float) {
+			stmt.setFloat(index, (Float) value);
+		} else if (value instanceof Double) {
+			stmt.setDouble(index, (Double) value);
+		} else if (value instanceof Long) {
+			stmt.setLong(index, (Long) value);
+		} else if (value instanceof Boolean) {
+			stmt.setBoolean(index, (Boolean) value);
+		} else {
+			LOGGER.warning("Setting value with setObject for type: " + value.getClass().getName());
+			stmt.setObject(index, value);
+		}
+	}
+
+	/**
+	 * Retrieves all rows from the database table associated with the given class, filtered and sorted by the provided conditions.
+	 * 
+	 * @param clazz the class representing the database table
+	 * @param filters a list of FilterCondition objects representing the filter conditions
+	 * @param sortBy the name of the field to sort by
+	 * @param ascending true if the results should be sorted in ascending order, false if descending
+	 * @return a list of objects representing the rows in the database table that match the filter conditions, sorted as specified
+	 * @throws SQLException if a database access error occurs
+	 * @throws IllegalAccessException if the class or its nullary constructor is not accessible
+	 * @throws InstantiationException if the class that declares the underlying constructor represents an abstract class
+	 * @throws NoSuchFieldException if a field with the specified name is not found
+	 * @throws IllegalArgumentException if the class does not have a TableName annotation or any fields with the ColumnName annotation
+	 */
+	public static <T> List<T> getRowsFilteredAndSortedBy(Class<T> clazz, List<FilterCondition> filters, String sortBy, Boolean ascending) throws SQLException, IllegalAccessException, InstantiationException, NoSuchFieldException {
 		// Get the table name from the TableName annotation
 		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 	
@@ -90,10 +126,10 @@ public class DatabaseManager {
 		// Add the filters to the query
 		if (!filters.isEmpty()) {
 			query.append(" WHERE ");
-			for (String fieldName : filters.keySet()) {
-				Field field = clazz.getDeclaredField(fieldName);
+			for (FilterCondition filter : filters) {
+				Field field = clazz.getDeclaredField(filter.getFieldName());
 				String columnName = DatabaseAnnotationUtils.getColumnName(field);
-				query.append(columnName).append(" = ? AND ");
+				query.append(columnName).append(" ").append(filter.getRelationOperator()).append(" ? AND ");
 			}
 			// Remove the last " AND "
 			query.setLength(query.length() - 5);
@@ -103,7 +139,7 @@ public class DatabaseManager {
 		if (sortBy != null) {
 			Field field = clazz.getDeclaredField(sortBy);
 			String columnName = DatabaseAnnotationUtils.getColumnName(field);
-			query.append(" ORDER BY ").append(columnName);
+			query.append(" ORDER BY ").append(columnName).append(ascending ? " ASC" : " DESC");
 		}
 	
 		// Execute the query and get the result set
@@ -112,8 +148,10 @@ public class DatabaseManager {
 	
 			// Set the filter values in the PreparedStatement
 			int index = 1;
-			for (Object value : filters.values()) {
-				stmt.setObject(index++, value);
+			for (FilterCondition filter : filters) {
+				// TODO handle different types of values especially LocalDate
+				setPreparedStatementValue(stmt, index, filter.getValue());
+				index++;
 			}
 	
 			ResultSet rs = stmt.executeQuery();
