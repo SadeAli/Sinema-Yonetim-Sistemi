@@ -9,14 +9,13 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import dbanno.ColumnName;
-import dbanno.DatabaseAnnotationUtils;
-import dbanno.TableName;
+import dbanno.*;
 import java.util.logging.Logger;
 
 public class DatabaseManager {
@@ -93,6 +92,8 @@ public class DatabaseManager {
 			stmt.setLong(index, (Long) value);
 		} else if (value instanceof Boolean) {
 			stmt.setBoolean(index, (Boolean) value);
+		} else if (value instanceof LocalTime) {
+			stmt.setString(index, ((LocalTime) value).format(DateTimeFormatter.ofPattern("HH:mm:ss"))); 
 		} else {
 			LOGGER.warning("Setting value with setObject for type: " + value.getClass().getName());
 			stmt.setObject(index, value);
@@ -113,7 +114,7 @@ public class DatabaseManager {
 	 * @throws NoSuchFieldException if a field with the specified name is not found
 	 * @throws IllegalArgumentException if the class does not have a TableName annotation or any fields with the ColumnName annotation
 	 */
-	public static <T> List<T> getRowsFilteredAndSortedBy(Class<T> clazz, List<FilterCondition> filters, String sortBy, Boolean ascending) throws SQLException, IllegalAccessException, InstantiationException, NoSuchFieldException {
+	public static <T> List<T> getRowsFilteredAndSortedBy(Class<T> clazz, List<FilterCondition> filters, String sortBy, boolean ascending) throws SQLException, IllegalAccessException, InstantiationException, NoSuchFieldException {
 		// Get the table name from the TableName annotation
 		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 	
@@ -149,7 +150,6 @@ public class DatabaseManager {
 			// Set the filter values in the PreparedStatement
 			int index = 1;
 			for (FilterCondition filter : filters) {
-				// TODO handle different types of values especially LocalDate
 				setPreparedStatementValue(stmt, index, filter.getValue());
 				index++;
 			}
@@ -171,33 +171,6 @@ public class DatabaseManager {
 	}
 
 	/**
-	 * Retrieves a row from the specified table by its ID.
-	 *
-	 * @param <T> the type of the object to be returned
-	 * @param tableName the name of the table
-	 * @param id the ID of the row to retrieve
-	 * @param parser the ResultSetParser used to parse the result set into an object of type T
-	 * @return the object representing the retrieved row, or null if no row is found
-	 *
-	public static <T> T getRowById(String tableName, int id, ResultSetParser<T> parser) {
-		T object = null;
-		String query = "SELECT * FROM " + tableName + " WHERE id = ?";
-
-		try (	Connection connection = getConnection();
-				PreparedStatement pStatement = connection.prepareStatement(query);) {
-			pStatement.setInt(1, id);
-			try (ResultSet resultSet = pStatement.executeQuery()) {
-				if (resultSet.next()) {
-					object = parser.parse(resultSet);
-				}
-			}
-		} catch (SQLException e) {
-			System.err.println("Unable to get row: " + e.getMessage());
-		}
-		return object;
-	}*/
-
-	/**
 	 * Inserts a new row into the database table based on the provided object.
 	 *
 	 * @param object the object representing the row to be inserted
@@ -206,15 +179,12 @@ public class DatabaseManager {
 	 * @throws IllegalArgumentException if the provided object does not have a TableName annotation
 	 * @throws RuntimeException if unable to access a field in the provided object
 	 * @throws SQLException if creating the row fails or no ID is obtained
+	 * @throws IllegalAccessException 
 	 */
-	public static <T> int insertRow(T object) throws SQLException {
+	public static <T> int insertRow(T object) throws SQLException, IllegalArgumentException, IllegalAccessException {
 		Class<?> clazz = object.getClass();
 		// Get the table name from the TableName annotation
-		TableName tableNameAnnotation = clazz.getAnnotation(TableName.class);
-		if (tableNameAnnotation == null) {
-			throw new IllegalArgumentException("Class " + clazz.getName() + " does not have a TableName annotation");
-		}
-		String tableName = tableNameAnnotation.value();
+		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 		
 		// Build the SQL query
 		StringBuilder queryBuilder = new StringBuilder("INSERT INTO " + tableName + " (");
@@ -224,24 +194,16 @@ public class DatabaseManager {
 		Field[] fields = clazz.getDeclaredFields();
 		List<Object> values = new ArrayList<>();
 	
-		// Iterate through the fields and get the column name and value if the field has a ColumnName annotation
+		// Add the column names and values to the query
 		for (Field field : fields) {
-			ColumnName columnNameAnnotation = field.getAnnotation(ColumnName.class);
-			if (columnNameAnnotation != null) {
-				String columnName = columnNameAnnotation.value();
+			if (!DatabaseAnnotationUtils.isPrimaryKey(field)) {
+				String columnName = DatabaseAnnotationUtils.getColumnName(field);
+				values.add(DatabaseAnnotationUtils.getFieldValue(field, object));
 				queryBuilder.append(columnName).append(", ");
 				valuesBuilder.append("?, ");
-				field.setAccessible(true);
-				try {
-					Object value = field.get(object);
-					values.add(value);
-				} catch (IllegalAccessException e) {
-					throw new RuntimeException("Unable to access field " + field.getName(), e);
-				} finally {
-					field.setAccessible(false);
-				}
 			}
 		}
+
 	
 		// Remove the last comma and space from the query and values builders and add the closing parentheses
 		queryBuilder.delete(queryBuilder.length() - 2, queryBuilder.length());
@@ -250,12 +212,16 @@ public class DatabaseManager {
 	
 		// Build the final query string
 		String query = queryBuilder.toString() + valuesBuilder.toString();
-	
+		
 		// Execute the query and return the generated ID
 		try (Connection connection = getConnection();
 			 PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
-			for (int i = 0; i < values.size(); i++) {
-				statement.setObject(i + 1, values.get(i));
+			for (int i = 0, offsetForId = 0; i < values.size() + offsetForId; i++) {
+				if (!DatabaseAnnotationUtils.isPrimaryKey(fields[i])) {
+					setPreparedStatementValue(statement, i + 1 - offsetForId, values.get(i - offsetForId));
+				} else {
+					offsetForId++;
+				}
 			}
 	
 			int affectedRows = statement.executeUpdate();
@@ -272,5 +238,100 @@ public class DatabaseManager {
 				}
 			}
 		}
+	}
+
+	public static <T> T getRowById (Class<T> clazz, int id) throws SQLException {
+		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
+		
+		// Get a map of column names and fields from the ColumnName annotations
+		Map<String, Field> columnNamesAndFields = DatabaseAnnotationUtils.getColumnNamesAndFields(clazz);
+
+		String query = "SELECT * FROM " + tableName + " WHERE id = ?";
+
+		try (Connection connection = getConnection();
+			 PreparedStatement stmt = connection.prepareStatement(query)) {
+			stmt.setInt(1, id);
+			
+			T object = null;
+			try (ResultSet rs = stmt.executeQuery()) {
+				if (rs.next()) {
+					object = DatabaseAnnotationUtils.createNewInstance(clazz);
+					object = DatabaseAnnotationUtils.setFieldsFromResultSet(columnNamesAndFields, clazz, object, rs);
+				}
+			}
+
+			return object;
+		}
+	}
+	
+
+	/**
+	 * Checks if a row exists in the database table based on the provided filter conditions.
+	 *
+	 * @param clazz the class representing the database table
+	 * @param filters a list of FilterCondition objects representing the filter conditions
+	 * @return true if a row exists that matches the filter conditions, false otherwise
+	 * @throws SQLException if a database access error occurs
+	 * @throws IllegalAccessException if the class or its nullary constructor is not accessible
+	 * @throws InstantiationException if the class that declares the underlying constructor represents an abstract class
+	 * @throws NoSuchFieldException if a field with the specified name is not found
+	 * @throws IllegalArgumentException if the class does not have a TableName annotation or any fields with the ColumnName annotation
+	 */
+	public static <T> boolean exists(Class<T> clazz, List<FilterCondition> filters) throws SQLException, IllegalAccessException, InstantiationException, NoSuchFieldException {
+		// Get the table name from the TableName annotation
+		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
+
+		// Build the SQL query
+		StringBuilder query = new StringBuilder("SELECT 1 FROM " + tableName);
+
+		// Add the filters to the query
+		if (!filters.isEmpty()) {
+			query.append(" WHERE ");
+			for (FilterCondition filter : filters) {
+				Field field = clazz.getDeclaredField(filter.getFieldName());
+				String columnName = DatabaseAnnotationUtils.getColumnName(field);
+				query.append(columnName).append(" ").append(filter.getRelationOperator()).append(" ? AND ");
+			}
+			// Remove the last " AND "
+			query.setLength(query.length() - 5);
+		}
+
+		// Execute the query and check if any rows are returned
+		try (Connection connection = getConnection();
+			 PreparedStatement stmt = connection.prepareStatement(query.toString())) {
+				// Set the filter values in the PreparedStatement
+				int index = 1;
+				for (FilterCondition filter : filters) {
+					setPreparedStatementValue(stmt, index, filter.getValue());
+					index++;
+				}
+		
+				ResultSet rs = stmt.executeQuery();
+			return rs.next();
+		}
+	}
+
+	/**
+	 * Updates the row in the database table based on the provided object.
+	 *
+	 * @param object the object representing the row to be updated
+	 * @return true if the row was updated successfully, false otherwise
+	 * @throws SQLException if an error occurs while executing the SQL statement
+	 * @throws IllegalArgumentException if the provided object does not have a TableName annotation
+	 * @throws RuntimeException if unable to access a field in the provided object
+	 */
+	public static boolean exists(String tableName, int id) throws SQLException {
+		String query = "SELECT 1 FROM " + tableName + " WHERE id = ? LIMIT 1";
+
+		try (Connection connection = getConnection();
+			 PreparedStatement stmt = connection.prepareStatement(query)) {
+			stmt.setInt(1, id);
+			try (ResultSet rs = stmt.executeQuery()) {
+				if (rs.next()) {
+					return true;
+				}
+			}
+		}
+		return false;
 	}
 }

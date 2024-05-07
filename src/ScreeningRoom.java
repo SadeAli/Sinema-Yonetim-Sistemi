@@ -1,7 +1,10 @@
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.xml.crypto.Data;
 
 import dbanno.*;
 
@@ -19,6 +22,8 @@ public class ScreeningRoom {
 
 	@ColumnName("seat_col_count")
 	private int seatColCount;
+
+	private ScreeningRoom() {}
 
 	public ScreeningRoom(int seatRowCount, int seatColCount) {
 		//TODO Add to the database
@@ -71,8 +76,30 @@ public class ScreeningRoom {
 	}
 
 	public boolean addMovieToDate(LocalDate date, int movieId) {
-		
-		//DatabaseManager.getRowsFiltered();
+		List<Session> sessionList = new ArrayList<>();
+
+		List<FilterCondition> filters = new ArrayList<>();
+		filters.add(new FilterCondition("date", date, 
+				FilterCondition.Relation.EQUALS));
+		try {
+			if (!DatabaseManager.exists(Session.class, filters)) {
+				LocalDateTime closingDateTime = LocalDateTime.of(date, 
+						ScreeningRoom.closingTime);
+				LocalDateTime time = LocalDateTime.of(date, 
+						ScreeningRoom.openingTime);
+				int extendedDuration = Session.calculateExtendedDuration(DatabaseManager.getRowById(Movie.class, movieId).getDuration());
+				while (time.plusMinutes(extendedDuration).isBefore(closingDateTime)) {
+					Session session = new Session(movieId, this.id, date, 
+							LocalTime.from(time.toLocalTime()), extendedDuration);
+					DatabaseManager.insertRow(session);
+					//TODO make this with a transaction
+					time = time.plusMinutes(extendedDuration);
+				}
+			}
+		} catch (Exception e) {
+			System.err.println("Unable to add movie to date: " + e.getMessage());
+			e.printStackTrace();
+		}
 
 		return false;
 	}
