@@ -203,14 +203,16 @@ public class MovieSelectionPanel extends JPanel {
                 add(searchField);
 
                 sortComboBox = new JComboBox<>();
-                sortComboBox.addItem("Sort by Name");
-                sortComboBox.addItem("Sort by Rating");
-                sortComboBox.addItem("Sort by Release Date");
-                add(sortComboBox);
 
-                sortComboBox.addActionListener(e -> {
-                    // TODO:
-                });
+                for (String option : new String[]
+                    { 
+                        "Sort by Name",
+                        "Sort by Rating",
+                        "Sort by Release Date" 
+                    }) {
+                    sortComboBox.addItem(option);
+                }
+                add(sortComboBox);
 
                 JPanel buttonPanel = new JPanel();
                 buttonPanel.setLayout(new BorderLayout());
@@ -224,21 +226,27 @@ public class MovieSelectionPanel extends JPanel {
                     
                     String selectedSortOption = (String) sortComboBox.getSelectedItem();
                     String sortQuery = "";
+                    boolean ascending = true;
 
                     switch (selectedSortOption) {
                         case "Sort by Name":
                             sortQuery = "name";
+                            ascending = true;
                             break;
                         case "Sort by Rating":
                             sortQuery = "rating";
+                            ascending = false;
                             break;
                         case "Sort by Release Date":
                             sortQuery = "release";
+                            ascending = false;
                             break;
                     }
 
+                    List<FilterCondition> filterConditions = new ArrayList<>();
+                    filterConditions.add(new FilterCondition("releaseDate", dateFilter, FilterCondition.Relation.EQUALS));
                     try {
-                        movieList = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class, Map.of("releaseDate", dateFilter.toString()), sortQuery);
+                        movieList = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class, filterConditions, sortQuery, ascending);
                     } catch (SQLException | IllegalAccessException | InstantiationException | NoSuchFieldException ex) {
                         ex.printStackTrace();
                     }
