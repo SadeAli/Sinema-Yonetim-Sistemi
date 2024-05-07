@@ -23,7 +23,10 @@ public class ScreeningRoom {
 	@ColumnName("seat_col_count")
 	private int seatColCount;
 
-	private ScreeningRoom() {}
+
+	private ScreeningRoom() {
+		// For database
+	}
 
 	public ScreeningRoom(int seatRowCount, int seatColCount) {
 		//TODO Add to the database
