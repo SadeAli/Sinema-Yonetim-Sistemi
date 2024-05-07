@@ -6,6 +6,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
+import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
@@ -89,6 +90,10 @@ public class DatabaseAnnotationUtils {
 					value = LocalDate.parse(
 						rs.getString(i),
 						DateTimeFormatter.ofPattern("yyyy-MM-dd"));
+				} else if (type == LocalTime.class) {
+					value = LocalTime.parse(
+						rs.getString(i),
+						DateTimeFormatter.ofPattern("HH:mm:ss"));
 				} else {
 					field.setAccessible(false);
 					throw new IllegalArgumentException("Unsupported field type: " + type.getName());
@@ -102,5 +107,22 @@ public class DatabaseAnnotationUtils {
 			throw new RuntimeException("Unable to set field: " + e.getMessage(), e);
 		}
 		return object;
+	}
+
+	public static boolean isPrimaryKey(Field field) {
+		PrimaryKey primaryKeyAnnotation = field.getAnnotation(PrimaryKey.class);
+		return primaryKeyAnnotation != null;
+	}
+
+	public static Object getFieldValue(Field field, Object object) {
+		try {
+			field.setAccessible(true);
+			return field.get(object);
+		} catch (IllegalAccessException e) {
+			System.err.println("Unable to get field value: " + e.getMessage());
+			throw new RuntimeException("Unable to get field value: " + e.getMessage(), e);
+		} finally {
+			field.setAccessible(false);
+		}
 	}
 }

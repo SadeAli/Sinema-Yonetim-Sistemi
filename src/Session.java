@@ -29,16 +29,20 @@ public class Session {
 	@ColumnName("duration")
 	private int extendedDuration;
 
-	@ColumnName("price")
-	private double price;
 
 	// Constructors
 
 	private Session() {}
 
-	public Session(int movieId, int screeningRoomId, LocalDate date, LocalTime startTime) {
+	public Session(int movieId, int screeningRoomId, LocalDate date, LocalTime startTime, int extendedDuration) {
 
 		//TODO Check if the screening room is available at the given time.
+
+		this.movieId = movieId;
+		this.screeningRoomId = screeningRoomId;
+		this.date = date;
+		this.startTime = startTime;
+		this.extendedDuration = extendedDuration;
 	}
 
 	// Getters
@@ -67,12 +71,17 @@ public class Session {
 		return extendedDuration;
 	}
 
-	public double getPrice() {
-		return price;
-	}
-
 	// Setters
 
+		/**
+	 * Calculates the extended duration of a session with breaks.
+	 * 
+	 * @param dur the duration of the movie in minutes
+	 * @return the extended duration of the session with breaks
+	 */
+	public static int calculateExtendedDuration(int dur) {
+		return (dur + ((dur / 60) * 10) + 30);	//10 min breaks every one hour, 30 min break between sessions.
+	}
 
 	public static List<Session> getAllSessions() {
 		try {
