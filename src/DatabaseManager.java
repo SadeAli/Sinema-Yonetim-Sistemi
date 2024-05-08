@@ -241,7 +241,7 @@ public class DatabaseManager {
 	}
 
 	public static <T> List<T> getClassWithQuery(Class<T> clazz, String addQuery) throws SQLException {
-		StringBuilder queryBuilder = new StringBuilder("SELECT");
+		StringBuilder queryBuilder = new StringBuilder("SELECT ");
 		
 		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 
