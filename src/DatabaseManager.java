@@ -240,6 +240,25 @@ public class DatabaseManager {
 		}
 	}
 
+	public static <T> List<T> getClassWithQuery(Class<T> clazz, String addQuery) throws SQLException {
+		StringBuilder queryBuilder = new StringBuilder("SELECT");
+		
+		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
+
+		queryBuilder.append(tableName).append(".* FROM ").append(tableName).append(" ").append(addQuery);
+
+		try (Connection connection = getConnection();
+			 PreparedStatement stmt = connection.prepareStatement(queryBuilder.toString());
+			 ResultSet rs = stmt.executeQuery()) {
+			List<T> result = new ArrayList<>();
+			while (rs.next()) {
+				T object = DatabaseAnnotationUtils.createNewInstance(clazz);
+				result.add((T) DatabaseAnnotationUtils.setFieldsFromResultSet(DatabaseAnnotationUtils.getColumnNamesAndFields(clazz), clazz, object, rs));
+			}
+			return result;
+		}
+	}
+
 	public static <T> T getRowById (Class<T> clazz, int id) throws SQLException {
 		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 		
