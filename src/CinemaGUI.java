@@ -213,7 +213,7 @@ public class CinemaGUI extends JFrame {
                         filterConditions = new ArrayList<>();
                         filterConditions.add(new FilterCondition("id", sessionArray[i].getMovieId(), FilterCondition.Relation.EQUALS));
                         try {
-                            movieArray[i] = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class, filterConditions, null, null).get(0);
+                            movieArray[i] = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class, filterConditions, "", true).get(0);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }

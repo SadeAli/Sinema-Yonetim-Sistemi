@@ -39,7 +39,7 @@ public class TicketSellingPanel extends JPanel {
         movieSelectionPanel = new MovieSelectionPanel(this, width, height, 1);
         cardPanel.add("Film", movieSelectionPanel);
 
-        sessionSelectionPanel = new SessionSelectionPanel(this, width, height);
+        sessionSelectionPanel = new SessionSelectionPanel();
         cardPanel.add("Seans", sessionSelectionPanel);
 
         seatSelectionPanel = new SeatSelectionPanel(this, width, height);
@@ -109,7 +109,7 @@ public class TicketSellingPanel extends JPanel {
         JLabel movieName;
         JLabel date;
         
-        SessionSelectionPanel(TicketSellingPanel parent, int width, int height) {
+        SessionSelectionPanel() {
             setLayout(new BorderLayout());
             JPanel northPanel = new JPanel();
             northPanel.setLayout(new BorderLayout());
