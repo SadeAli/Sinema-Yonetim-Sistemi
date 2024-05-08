@@ -232,7 +232,7 @@ public class CinemaGUI extends JFrame {
                     List<Session> sessionList = null;
                     // get sessions for the screening room
                     List<FilterCondition> filterConditions = new ArrayList<>();
-                    filterConditions.add(new FilterCondition("id", screeningRoom.getId(), FilterCondition.Relation.EQUALS));
+                    filterConditions.add(new FilterCondition("screeningRoomId", screeningRoom.getId(), FilterCondition.Relation.EQUALS));
                     filterConditions.add(new FilterCondition("date", LocalDate.now(), FilterCondition.Relation.GREATER_THAN_OR_EQUALS));
                     filterConditions.add(new FilterCondition("date", LocalDate.now().plusDays(30), FilterCondition.Relation.LESS_THAN));
                     try {
@@ -245,7 +245,6 @@ public class CinemaGUI extends JFrame {
                     Session sessionArray[] = new Session[30];
 
                     for (Session s : sessionList) {
-                        System.out.println("Session date: " + s.getDate() + " movie id: " + s.getMovieId());
                         sessionArray[(int)(ChronoUnit.DAYS.between(LocalDate.now(), s.getDate()))] = s;
                     }
     
@@ -253,11 +252,10 @@ public class CinemaGUI extends JFrame {
                     Movie movieArray[] = new Movie[30];
                     for (int i = 0; i < 30; i++) {
                         if (sessionArray[i] != null) {
-    
                             filterConditions = new ArrayList<>();
                             filterConditions.add(new FilterCondition("id", sessionArray[i].getMovieId(), FilterCondition.Relation.EQUALS));
                             try {
-                                movieArray[i] = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class, filterConditions, "", true).get(0);
+                                movieArray[i] = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class, filterConditions, "id", true).get(0);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
@@ -268,19 +266,17 @@ public class CinemaGUI extends JFrame {
                     for (int i = 0; i < 30; i++) {
                         JButton button = new JButton();
     
-                        final int movie_index = i;
+                        final int dayIndex = i;
                         
                         button.setText(LocalDate.now().plusDays(i).getMonthValue() + "/" + LocalDate.now().plusDays(i).getDayOfMonth());
-                        Movie movie = movieArray[movie_index];
+                        Movie movie = movieArray[dayIndex];
                         final String movieName = movie == null ? "Boş" : movie.getName();
                         button.addActionListener(new ActionListener() {
                             public void actionPerformed(ActionEvent e) {
-                                System.out.println("Selected movie: " + movieName);
-                                System.out.println("Selected date: " + LocalDate.now().plusDays(movie_index));
-                                System.out.println("Selected movie id: " + (movie == null ? "null" : movie.getId()));
-                                System.out.println("Selected screening room id: " + screeningRoom.getId());
-                                System.out.println("Selected movie name: " + selectedMovie.getName());
-                                screeningRoom.addMovieToDate(LocalDate.now().plusDays(movie_index), selectedMovie.getId());
+                                if (screeningRoom.addMovieToDate(LocalDate.now().plusDays(dayIndex), selectedMovie.getId()))
+                                    System.out.println("added movie " + selectedMovie.getId() + " to date " + LocalDate.now().plusDays(dayIndex));
+                                else
+                                    System.out.println("unable to add movie " + selectedMovie.getId() + " to date " + LocalDate.now().plusDays(dayIndex));
                                 onVisible();
                             }
                         });
