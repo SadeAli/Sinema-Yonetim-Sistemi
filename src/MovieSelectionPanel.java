@@ -198,7 +198,7 @@ public class MovieSelectionPanel extends JPanel {
                     }
 
                     List<FilterCondition> filterConditions = new ArrayList<>();
-                    filterConditions.add(new FilterCondition("releaseDate", dateFilter, FilterCondition.Relation.EQUALS));
+                    filterConditions.add(new FilterCondition("release", dateFilter, FilterCondition.Relation.EQUALS));
                     try {
                         movieList = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class, filterConditions, sortQuery, ascending);
                     } catch (SQLException | IllegalAccessException | InstantiationException | NoSuchFieldException ex) {
