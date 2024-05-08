@@ -1,10 +1,1 @@
 bin/
-bin/CinemaGUI.class
-bin/CinemaGUI$AdminPanel.class
-bin/CinemaGUI$AdminPanel$1.class
-bin/CinemaGUI$AdminPanel$ScreeningRoomManagementPanel.class
-bin/CinemaGUI$MainMenuPanel.class
-bin/DatabaseManager.class
-bin/MovieSelectionPanel.class
-bin/MovieSelectionPanel$MovieSelectionToolbar$FilterPopup.class
-bin/ScreeningRoom.class
