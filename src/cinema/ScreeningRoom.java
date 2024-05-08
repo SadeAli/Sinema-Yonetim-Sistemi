@@ -85,6 +85,8 @@ public class ScreeningRoom {
 		List<FilterCondition> filters = new ArrayList<>();
 		filters.add(new FilterCondition("date", date, 
 				FilterCondition.Relation.EQUALS));
+		filters.add(new FilterCondition("screeningRoomId", this.id, 
+				FilterCondition.Relation.EQUALS));
 		try {
 			if (!DatabaseManager.exists(Session.class, filters)) {
 				LocalDateTime closingDateTime = LocalDateTime.of(date, 
@@ -99,6 +101,7 @@ public class ScreeningRoom {
 					//TODO make this with a transaction
 					time = time.plusMinutes(extendedDuration);
 				}
+				return true;
 			}
 		} catch (Exception e) {
 			System.err.println("Unable to add movie to date: " + e.getMessage());

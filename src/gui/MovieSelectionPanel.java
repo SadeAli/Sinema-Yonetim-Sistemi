@@ -198,7 +198,7 @@ public class MovieSelectionPanel extends JPanel {
                             ascending = false;
                             break;
                         case "Sort by Release Date":
-                            sortQuery = "release";
+                            sortQuery = "releaseDate";
                             ascending = false;
                             break;
                     }

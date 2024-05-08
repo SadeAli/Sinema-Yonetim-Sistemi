@@ -326,6 +326,9 @@ public class DatabaseManager {
 		
 				ResultSet rs = stmt.executeQuery();
 			return rs.next();
+		} catch (Exception e) {
+			System.err.println("Unable to check if row exists: " + e.getMessage());
+			throw e;
 		}
 	}
 
