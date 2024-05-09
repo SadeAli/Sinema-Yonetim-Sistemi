@@ -69,6 +69,10 @@ public class MovieSelectionPanel extends JPanel {
         public MovieBanner(Movie movie) {
             setBackground(Color.WHITE);
             setBorder(BorderFactory.createLineBorder(Color.BLACK));
+
+            setPreferredSize(new Dimension(0, 200));
+            setMaximumSize(new Dimension(5000, 200));
+            
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
@@ -115,7 +119,6 @@ public class MovieSelectionPanel extends JPanel {
                     sortOrder,
                     ascending);
 
-            System.out.println(dateQuery.toString());
             List<FilterCondition> sessionFilters = new ArrayList<>();
             sessionFilters.add(new FilterCondition("date", dateQuery, Relation.EQUALS));
             List<Session> sessions = DatabaseManager.getRowsFilteredAndSortedBy(
@@ -123,8 +126,6 @@ public class MovieSelectionPanel extends JPanel {
                     sessionFilters,
                     "startTime",
                     true);
-
-            List<Session> allSessions = DatabaseManager.getAllRows(Session.class);
 
             List<Movie> availableMovies = new ArrayList<>();
 
@@ -148,10 +149,7 @@ public class MovieSelectionPanel extends JPanel {
 
     public class MovieSelectionToolbar extends JToolBar {
 
-        private MovieSelectionPanel parent;
-
         MovieSelectionToolbar(MovieSelectionPanel parent) {
-            this.parent = parent;
             setFloatable(false);
 
             JPanel toolbarPanel = new JPanel();

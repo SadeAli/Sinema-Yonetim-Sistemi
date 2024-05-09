@@ -12,15 +12,12 @@ import java.awt.Component;
 import javax.swing.JOptionPane;
 import javax.swing.JLabel;
 import javax.swing.JList;
-import javax.swing.JTextField;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
-import java.time.LocalTime;
 
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
-import javax.swing.ImageIcon;
 import javax.swing.JToolBar;
 
 import cinema.Movie;
@@ -28,7 +25,6 @@ import cinema.ScreeningRoom;
 import cinema.Session;
 import database.DatabaseManager;
 import database.FilterCondition;
-import database.FilterCondition.Relation;
 
 import java.awt.BorderLayout;
 import java.util.ArrayList;
@@ -52,6 +48,7 @@ public class CinemaGUI extends JFrame {
     private AdminPanel adminPanel = new AdminPanel(this, width, height);
 
     public static void main(String[] args) {
+        @SuppressWarnings("unused")
         CinemaGUI cinemaGUI = new CinemaGUI();
     }
 
@@ -128,7 +125,6 @@ public class CinemaGUI extends JFrame {
         ScreeningRoomManagementPanel screeningRoomManagementPanel = new ScreeningRoomManagementPanel();
         JPanel movieManagementPanel = new JPanel();
 
-        CardLayout m_cardLayout = new CardLayout();
         List<ScreeningRoom> screeningRooms = ScreeningRoom.getAllScreeningRooms();
         JTabbedPane tabbedPane = new JTabbedPane();
 
