@@ -169,8 +169,6 @@ public class ScreeningRoom {
 					seatList.add(new Seat(this.id, i, j));
 				}
 			}
-
-			System.out.println(seatList.toString());
 			
 			// Add seats to the batch
 			for (Seat seat : seatList) {
