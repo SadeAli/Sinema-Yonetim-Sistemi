@@ -75,29 +75,6 @@ public class DatabaseManager {
 			return result;
 		}
 	}
-	private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class.getName());
-
-
-	public static void setPreparedStatementValue(PreparedStatement stmt, int index, Object value) throws SQLException {
-		if (value instanceof LocalDate) {
-			stmt.setString(index, ((LocalDate) value).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
-		} else if (value instanceof Integer) {
-			stmt.setInt(index, (Integer) value);
-		} else if (value instanceof Float) {
-			stmt.setFloat(index, (Float) value);
-		} else if (value instanceof Double) {
-			stmt.setDouble(index, (Double) value);
-		} else if (value instanceof Long) {
-			stmt.setLong(index, (Long) value);
-		} else if (value instanceof Boolean) {
-			stmt.setBoolean(index, (Boolean) value);
-		} else if (value instanceof LocalTime) {
-			stmt.setString(index, ((LocalTime) value).format(DateTimeFormatter.ofPattern("HH:mm:ss"))); 
-		} else {
-			LOGGER.warning("Setting value with setObject for type: " + value.getClass().getName());
-			stmt.setObject(index, value);
-		}
-	}
 
 	/**
 	 * Retrieves all rows from the database table associated with the given class, filtered and sorted by the provided conditions.
@@ -221,7 +198,7 @@ public class DatabaseManager {
 			 PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 			for (int i = 0, offsetForId = 0; i < values.size() + offsetForId; i++) {
 				if (!DatabaseAnnotationUtils.isPrimaryKey(fields[i]) && fields[i].getAnnotation(ColumnName.class) != null){
-					setPreparedStatementValue(statement, i + 1 - offsetForId, values.get(i - offsetForId));
+					DatabaseAnnotationUtils.setPreparedStatementValue(statement, i + 1 - offsetForId, values.get(i - offsetForId));
 				} else {
 					offsetForId++;
 				}
@@ -324,7 +301,7 @@ public class DatabaseManager {
 				// Set the filter values in the PreparedStatement
 				int index = 1;
 				for (FilterCondition filter : filters) {
-					setPreparedStatementValue(stmt, index, filter.getValue());
+					DatabaseAnnotationUtils.setPreparedStatementValue(stmt, index, filter.getValue());
 					index++;
 				}
 		
