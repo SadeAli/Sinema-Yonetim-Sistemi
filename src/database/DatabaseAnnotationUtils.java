@@ -128,7 +128,9 @@ public class DatabaseAnnotationUtils {
 	}
 
 	public static void setPreparedStatementValue(PreparedStatement stmt, int index, Object value) throws SQLException {
-		if (value instanceof LocalDate) {
+		if (value == null) {
+			stmt.setNull(index, java.sql.Types.NULL);
+		} else if (value instanceof LocalDate) {
 			stmt.setString(index, ((LocalDate) value).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 		} else if (value instanceof Integer) {
 			stmt.setInt(index, (Integer) value);

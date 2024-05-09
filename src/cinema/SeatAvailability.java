@@ -16,7 +16,7 @@ public class SeatAvailability {
 
 	@ForeignKey(referencedClass = Ticket.class)
 	@ColumnName("ticket_id")
-	private int ticketId;
+	private Integer ticketId; // nullable
 
 	@ForeignKey(referencedClass = Session.class)
 	@ColumnName("session_id")
@@ -30,7 +30,7 @@ public class SeatAvailability {
 
 	private SeatAvailability() {}
 
-	public SeatAvailability(boolean isAvailable, int ticketId, int sessionId, int seatId) {
+	public SeatAvailability(boolean isAvailable, Integer ticketId, int sessionId, int seatId) {
 		this.isAvailable = isAvailable;
 		this.ticketId = ticketId;
 		this.sessionId = sessionId;
@@ -47,7 +47,7 @@ public class SeatAvailability {
 		return isAvailable;
 	}
 
-	public int getTicketId() {
+	public Integer getTicketId() {
 		return ticketId;
 	}
 
