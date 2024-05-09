@@ -44,7 +44,7 @@ public class TicketSellingPanel extends JPanel {
         cardLayout = new CardLayout();
         cardPanel.setLayout(cardLayout);
 
-        movieSelectionPanel = new MovieSelectionPanel(this, width, height, 1);
+        movieSelectionPanel = new MovieSelectionPanel(this);
         cardPanel.add("Film", movieSelectionPanel);
 
         sessionSelectionPanel = new SessionSelectionPanel();
