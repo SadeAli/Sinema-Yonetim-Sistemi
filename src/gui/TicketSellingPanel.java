@@ -4,7 +4,9 @@ import java.awt.BorderLayout;
 import java.awt.CardLayout;
 import java.awt.Dimension;
 import java.awt.GridLayout;
+
 import java.time.LocalDate;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -18,13 +20,13 @@ import cinema.ScreeningRoom;
 import cinema.Seat;
 import cinema.SeatAvailability;
 import cinema.Session;
+
 import database.DatabaseManager;
 import database.FilterCondition;
 
 public class TicketSellingPanel extends JPanel {
 
-    JPanel cardPanel;
-    CardLayout cardLayout;
+    CardLayout cardLayout = new CardLayout();
     CinemaGUI parent;
 
     // panels
@@ -37,31 +39,23 @@ public class TicketSellingPanel extends JPanel {
     Movie selectedMovie;
     Session selectedSession;
     LocalDate selectedDate;
-    List<Seat> selectedSeats = new ArrayList<>();
+    List<SeatAvailability> selectedSeats = new ArrayList<>();
 
     TicketSellingPanel(CinemaGUI parent, int width, int height) {
         this.parent = parent;
-        setLayout(new BorderLayout());
-
-        cardPanel = new JPanel();
-        cardLayout = new CardLayout();
-        cardPanel.setLayout(cardLayout);
+        setLayout(cardLayout);
 
         movieSelectionPanel = new MovieSelectionPanel(this);
-        cardPanel.add("Film", movieSelectionPanel);
-
         sessionSelectionPanel = new SessionSelectionPanel();
-        cardPanel.add("Seans", sessionSelectionPanel);
-
         seatSelectionPanel = new SeatSelectionPanel();
-        cardPanel.add("Koltuk", seatSelectionPanel);
+        paymentPanel = new PaymentPanel();
 
-        paymentPanel = new PaymentPanel(this, width, height);
-        cardPanel.add("Ödeme", paymentPanel);
+        add("Film", movieSelectionPanel);
+        add("Seans", sessionSelectionPanel);
+        add("Koltuk", seatSelectionPanel);
+        add("Ödeme", paymentPanel);
 
-        add(cardPanel, BorderLayout.CENTER);
-
-        cardLayout.show(cardPanel, "Film Seç");
+        cardLayout.show(this, "Film Seç");
     }
 
     public void goBack() {
@@ -71,53 +65,27 @@ public class TicketSellingPanel extends JPanel {
     public void selectMovie(Movie movie, LocalDate date) {
         selectedMovie = movie;
         selectedDate = date;
-        cardLayout.show(cardPanel, "Seans");
+        cardLayout.show(this, "Seans");
         sessionSelectionPanel.listSessions(movie, date);
     }
 
     public void deselectMovie() {
         selectedMovie = null;
         selectedDate = null;
-        cardLayout.show(cardPanel, "Film");
+        cardLayout.show(this, "Film");
     }
 
     public void selectSession(Session session) {
         selectedSession = session;
-        cardLayout.show(cardPanel, "Koltuk");
+        cardLayout.show(this, "Koltuk");
         seatSelectionPanel.listSeats(session);
-    }
-
-    public void addSeat(Seat seat) {
-        selectedSeats.add(seat);
-    }
-
-    public void removeSeat(Seat seat) {
-        selectedSeats.remove(seat);
-    }
-
-    public void clearSeats() {
-        selectedSeats.clear();
     }
 
     public void onVisible() {
         movieSelectionPanel.onVisible();
     }
 
-    public void showMainMenu() {
-        parent.showMainMenu();
-    }
-
     private class SessionSelectionPanel extends JPanel {
-
-        // border layout
-        // north: back button / movie name / date
-        // center: session buttons grid layout with scrollable pane
-
-        // each session button has a session object attached to it and a listener
-        // when clicked, selectSession is called with the session object
-        // and the card layout is switched to the seat selection panel
-
-        JButton backButton;
         JLabel movieName;
         JLabel date;
 
@@ -129,22 +97,19 @@ public class TicketSellingPanel extends JPanel {
             northPanel.setLayout(new BorderLayout());
             add(northPanel, BorderLayout.NORTH);
 
-            backButton = new JButton("Geri");
-            backButton.addActionListener(e -> deselectMovie());
-            northPanel.add(backButton, BorderLayout.WEST);
+            JButton backButton = new JButton("Geri");
 
             movieName = new JLabel();
-            northPanel.add(movieName, BorderLayout.CENTER);
-
             date = new JLabel();
+
+            northPanel.add(backButton, BorderLayout.WEST);
+            northPanel.add(movieName, BorderLayout.CENTER);
             northPanel.add(date, BorderLayout.EAST);
+
+            backButton.addActionListener(e -> deselectMovie());
         }
 
         public void listSessions(Movie movie, LocalDate date) {
-            // get sessions for the movie and date
-            // add buttons for each session
-            // set the movie name and date
-
             movieName.setText(movie.getName());
             this.date.setText(date.toString());
 
@@ -182,34 +147,18 @@ public class TicketSellingPanel extends JPanel {
         ScreeningRoom room;
         JPanel seatPanel = new JPanel();
         SeatState seatStates[][];
-        List<Seat> selectedSeats = new ArrayList<>();
+        List<SeatAvailability> selectedSeats = new ArrayList<>();
 
         public SeatSelectionPanel() {
             setLayout(new BorderLayout());
-            add(seatPanel);
 
-            JLabel screenLabel = new JLabel("Perde");
+            JPanel southPanel = new SouthPanel();
+            JLabel screenLabel = new JLabel("Perde", JLabel.CENTER);
             screenLabel.setFont(screenLabel.getFont().deriveFont(34.0f));
-            screenLabel.setHorizontalAlignment(JLabel.CENTER);
             screenLabel.setPreferredSize(new Dimension(0, 100));
+
+            add(seatPanel, BorderLayout.CENTER);
             add(screenLabel, BorderLayout.NORTH);
-
-            JPanel southPanel = new JPanel();
-
-            JButton backButton = new JButton("Geri");
-            backButton.addActionListener(e -> {
-                cardLayout.show(cardPanel, "Seans");
-                seatPanel.removeAll();
-                clearSeats();
-            });
-            southPanel.add(backButton);
-
-            JButton nextButton = new JButton("Ödeme");
-            nextButton.addActionListener(e -> {
-                cardLayout.show(cardPanel, "Ödeme");
-            });
-            southPanel.add(nextButton);
-
             add(southPanel, BorderLayout.SOUTH);
         }
 
@@ -224,6 +173,8 @@ public class TicketSellingPanel extends JPanel {
         }
 
         public void listSeats(Session session) {
+            selectedSeats.clear();
+
             ScreeningRoom room = getScreeningRoomFromSession(selectedSession);
             final int row = room.getSeatRowCount(),
                     col = room.getSeatColCount();
@@ -241,35 +192,64 @@ public class TicketSellingPanel extends JPanel {
                 for (SeatAvailability sa : seatAvailabilities) {
                     Seat s = DatabaseManager.getRowById(Seat.class, sa.getSeatId());
                     seatStates[s.getRow()][s.getCol()] = sa.isAvailable() ? SeatState.AVAILABLE : SeatState.UNAVAILABLE;
-                    seatPanel.add(new SeatButton(s));
+                    seatPanel.add(new SeatButton(s, sa));
                 }
+
             } catch (Exception e) {
                 e.printStackTrace();
             }
         }
 
+        private class SouthPanel extends JPanel {
+            JButton backButton = new JButton("Geri");
+            JButton nextButton = new JButton("Ödeme");
+
+            SouthPanel() {
+                add(backButton);
+                add(nextButton);
+
+                backButton.addActionListener(e -> {
+                    cardLayout.show(TicketSellingPanel.this, "Seans");
+                    seatPanel.removeAll();
+                });
+
+                nextButton.addActionListener(e -> {
+                    System.out.println("Selected seats: " + selectedSeats);
+                    if (SeatAvailability.bookSeatList(selectedSeats)) {
+                        System.out.println("Seats booked successfully");
+                        selectedSeats.clear();
+                    } else {
+                        System.out.println("Failed to book seats");
+                    }
+
+                    // TODO dont forget payment
+                    // cardLayout.show(cardPanel, "Ödeme");
+                });
+            }
+        }
+
         private class SeatButton extends JButton {
-            public SeatButton(Seat seat) {
+            public SeatButton(Seat seat, SeatAvailability sa) {
                 String rowSymbol = String.valueOf((char) ('A' + seat.getRow())) + seat.getCol();
 
                 int row = seat.getRow(), col = seat.getCol();
-                
+
                 setText(rowSymbol);
 
                 if (!seatStates[row][col].equals(SeatState.AVAILABLE)) {
                     setBackground(java.awt.Color.RED);
                 }
-                
+
                 addActionListener(e -> {
                     switch (seatStates[row][col]) {
                         case SeatState.AVAILABLE:
                             seatStates[row][col] = SeatState.SELECTED;
-                            selectedSeats.add(seat);
+                            selectedSeats.add(sa);
                             setBackground(java.awt.Color.GREEN);
                             break;
                         case SeatState.SELECTED:
                             seatStates[row][col] = SeatState.AVAILABLE;
-                            selectedSeats.remove(seat);
+                            selectedSeats.remove(sa);
                             setBackground(null);
                             break;
                         default:
@@ -282,13 +262,7 @@ public class TicketSellingPanel extends JPanel {
     }
 
     private class PaymentPanel extends JPanel {
-        public PaymentPanel(TicketSellingPanel parent, int width, int height) {
-
-        }
-    }
-
-    private class ScreeningRoomSelectionPanel {
-        public ScreeningRoomSelectionPanel() {
+        public PaymentPanel() {
 
         }
     }
