@@ -1,4 +1,6 @@
 package cinema;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -68,6 +70,66 @@ public class SeatAvailability {
 		} catch (Exception e) {
 			System.err.println("Unable to get seat availabilities: " + e.getMessage());
 			return new ArrayList<>();
+		}
+	}
+
+	public static boolean bookSeatList (List<SeatAvailability> seatAvList) {
+		String sql = "UPDATE seat_availability SET is_available = 0 WHERE id = ?";
+		// Check if the list is empty
+		if (seatAvList.isEmpty()) {
+			return false;
+		}
+
+		Connection conn = null;
+		PreparedStatement stmt = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			stmt = conn.prepareStatement(sql);
+
+			// Start the transaction
+			conn.setAutoCommit(false);
+			for (SeatAvailability seatAv : seatAvList) {
+				SeatAvailability seatAvDB = DatabaseManager.getRowById(SeatAvailability.class, seatAv.getId());
+				if (seatAvDB == null || !seatAvDB.isAvailable()) {
+					return false;
+				}
+				stmt.setInt(1, seatAv.getId());
+				stmt.addBatch();
+			}
+
+			stmt.executeBatch();
+			return true;
+		} catch (Exception e) {
+			System.err.println("Unable to book seat list: " + e.getMessage());
+			if (conn != null) {
+				try {
+					conn.rollback();
+				} catch (Exception e2) {
+					System.err.println("Unable to rollback transaction: " + e2.getMessage());
+				}
+			}
+			return false;
+		} finally {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (Exception e) {
+					System.err.println("Unable to close statement: " + e.getMessage());
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.setAutoCommit(true);
+				} catch (Exception e) {
+					System.err.println("Unable to set auto commit to true: " + e.getMessage());
+				}
+
+				try {
+					conn.close();
+				} catch (Exception e) {
+					System.err.println("Unable to close connection: " + e.getMessage());
+				}
+			}
 		}
 	}
 }
