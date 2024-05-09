@@ -126,7 +126,7 @@ public class DatabaseManager {
 			// Set the filter values in the PreparedStatement
 			int index = 1;
 			for (FilterCondition filter : filters) {
-				setPreparedStatementValue(stmt, index, filter.getValue());
+				DatabaseAnnotationUtils.setPreparedStatementValue(stmt, index, filter.getValue());
 				index++;
 			}
 	
@@ -194,7 +194,7 @@ public class DatabaseManager {
 			 PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 			for (int i = 0, offsetForId = 0; i < values.size() + offsetForId; i++) {
 				if (!DatabaseAnnotationUtils.isPrimaryKey(fields[i]) && fields[i].getAnnotation(ColumnName.class) != null){
-					setPreparedStatementValue(statement, i + 1 - offsetForId, values.get(i - offsetForId));
+					DatabaseAnnotationUtils.setPreparedStatementValue(statement, i + 1 - offsetForId, values.get(i - offsetForId));
 				} else {
 					offsetForId++;
 				}
@@ -297,7 +297,7 @@ public class DatabaseManager {
 				// Set the filter values in the PreparedStatement
 				int index = 1;
 				for (FilterCondition filter : filters) {
-					setPreparedStatementValue(stmt, index, filter.getValue());
+					DatabaseAnnotationUtils.setPreparedStatementValue(stmt, index, filter.getValue());
 					index++;
 				}
 		
