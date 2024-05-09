@@ -3,6 +3,7 @@ package database;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.LocalDate;
@@ -124,5 +125,62 @@ public class DatabaseAnnotationUtils {
 		} finally {
 			field.setAccessible(false);
 		}
+	}
+
+	public static void setPreparedStatementValue(PreparedStatement stmt, int index, Object value) throws SQLException {
+		if (value instanceof LocalDate) {
+			stmt.setString(index, ((LocalDate) value).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+		} else if (value instanceof Integer) {
+			stmt.setInt(index, (Integer) value);
+		} else if (value instanceof Float) {
+			stmt.setFloat(index, (Float) value);
+		} else if (value instanceof Double) {
+			stmt.setDouble(index, (Double) value);
+		} else if (value instanceof Long) {
+			stmt.setLong(index, (Long) value);
+		} else if (value instanceof Boolean) {
+			stmt.setBoolean(index, (Boolean) value);
+		} else if (value instanceof LocalTime) {
+			stmt.setString(index, ((LocalTime) value).format(DateTimeFormatter.ofPattern("HH:mm:ss"))); 
+		} else {
+			System.err.println("Setting value with setObject for type: " + value.getClass().getName());
+			stmt.setObject(index, value);
+		}
+	}
+
+	public static void setPreparedStatementValueSet(Map<String, Field> columnFieldMap, Object object, PreparedStatement ps) {
+		try {
+			int i = 1;
+			for (Field field : columnFieldMap.values()) {
+				if(!DatabaseAnnotationUtils.isPrimaryKey(field)) {
+					Object value = getFieldValue(field, object);
+					setPreparedStatementValue(ps, i, value);
+					i++;
+				}
+			}
+		} catch (SQLException e) {
+			System.err.println("Unable to set prepared statement values: " + e.getMessage());
+			throw new RuntimeException("Unable to set prepared statement values: " + e.getMessage(), e);
+		}
+	}
+
+	public static String getInsertQuery(Class<?> clazz) {
+		StringBuilder queryBuilder = new StringBuilder("INSERT INTO " + getTableName(clazz) + " (");
+		StringBuilder valuesBuilder = new StringBuilder(") VALUES (");
+
+		Map<String, Field> columnFieldMap = getColumnNamesAndFields(clazz);
+
+		for (String columnName : columnFieldMap.keySet()) {
+			if (!isPrimaryKey(columnFieldMap.get(columnName))) {
+				queryBuilder.append(columnName).append(", ");
+				valuesBuilder.append("?, ");
+			}
+		}
+
+		// Remove the last comma and space
+		queryBuilder.delete(queryBuilder.length() - 2, queryBuilder.length());
+		valuesBuilder.delete(valuesBuilder.length() - 2, valuesBuilder.length());
+
+		return queryBuilder.append(valuesBuilder).append(")").toString();
 	}
 }
