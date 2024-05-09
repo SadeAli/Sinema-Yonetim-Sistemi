@@ -182,14 +182,15 @@ public class CinemaGUI extends JFrame {
 
                 JComboBox<Movie> movieCombobox = new JComboBox<>();
                 movieCombobox.setRenderer(new DefaultListCellRenderer() {
-                    @Override
+                
+                @Override
                 public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
                     super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
                     if (value instanceof Movie) {
                         Movie movie = (Movie) value;
 
-                        String text = String.format("%-100s%-100s%-100s", movie.getName(), "rating: " + movie.getRating(), "duration: " + movie.getDuration());
-                        setText(text);
+                        String text = String.format("%-70s%-30s%-6s", movie.getName(), "rating: " + movie.getRating(), "duration: " + movie.getDuration());
+                        setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
                         
                         setText(text);
                     }
