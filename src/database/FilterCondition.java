@@ -38,6 +38,8 @@ public class FilterCondition {
 				return ">=";
 			case LESS_THAN_OR_EQUALS:
 				return "<=";
+			case LIKE:
+				return "LIKE";
 			default:
 				return "";
 		}
@@ -49,6 +51,7 @@ public class FilterCondition {
         GREATER_THAN,
         LESS_THAN,
 		GREATER_THAN_OR_EQUALS,
-		LESS_THAN_OR_EQUALS
+		LESS_THAN_OR_EQUALS,
+		LIKE
     }
 }

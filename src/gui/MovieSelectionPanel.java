@@ -27,7 +27,7 @@ public class MovieSelectionPanel extends JPanel {
     private int width;
 
     // panel where the movies will be displayed
-    private JPanel movieListingPanel;
+    private JPanel movieContainerPanel;
     private JScrollPane scrollPane;
 
     // list of movies
@@ -52,20 +52,18 @@ public class MovieSelectionPanel extends JPanel {
         add(toolbar, BorderLayout.NORTH);
 
         // panel which will contain the movie panels
-        movieListingPanel = new JPanel();
-        movieListingPanel.setLayout(new BoxLayout(movieListingPanel, BoxLayout.Y_AXIS));
+        movieContainerPanel = new JPanel();
+        movieContainerPanel.setLayout(new BoxLayout(movieContainerPanel, BoxLayout.Y_AXIS));
 
         // create the scroll pane for the movie list
-        scrollPane = new JScrollPane(movieListingPanel);
+        scrollPane = new JScrollPane(movieContainerPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.getVerticalScrollBar().setUnitIncrement(unitIncrement);
-        scrollPane.setPreferredSize(new Dimension(300, 300)); // set a preferred size
         add(scrollPane, BorderLayout.CENTER);
     }
 
     private class MovieBanner extends JPanel{
         public MovieBanner(Movie movie) {
-            setPreferredSize(new Dimension(width - 50, 80));
             setBackground(Color.WHITE);
             setBorder(BorderFactory.createLineBorder(Color.BLACK));
             addMouseListener(new MouseAdapter() {
@@ -86,15 +84,15 @@ public class MovieSelectionPanel extends JPanel {
     }
 
     public void reapintMoviePanels() {
-        movieListingPanel.removeAll();
+        movieContainerPanel.removeAll();
 
         for (Movie movie : movieList) {
             JPanel moviePanel = new MovieBanner(movie);
-            movieListingPanel.add(moviePanel);
+            movieContainerPanel.add(moviePanel);
         }
 
-        movieListingPanel.revalidate();
-        movieListingPanel.repaint();
+        movieContainerPanel.revalidate();
+        movieContainerPanel.repaint();
     }
 
     public void goBack() {
@@ -103,6 +101,7 @@ public class MovieSelectionPanel extends JPanel {
 
     public void onVisible() {
         movieList = Movie.getAllMovies();
+        reapintMoviePanels();
     }
 
     public class MovieSelectionToolbar extends JToolBar {
@@ -182,10 +181,10 @@ public class MovieSelectionPanel extends JPanel {
                 applyButton.addActionListener(e -> {
 
                     dateFilter = dateModel.getDate().toInstant().atZone(Calendar.getInstance().getTimeZone().toZoneId()).toLocalDate();
-                    System.out.println(dateFilter.toString());
                     
+                    String searchQuery = searchField.getText();
                     String selectedSortOption = (String) sortComboBox.getSelectedItem();
-                    String sortQuery = "";
+                    String sortQuery = "rating";
                     boolean ascending = true;
 
                     switch (selectedSortOption) {
@@ -205,6 +204,9 @@ public class MovieSelectionPanel extends JPanel {
 
                     List<FilterCondition> filterConditions = new ArrayList<>();
                     filterConditions.add(new FilterCondition("releaseDate", dateFilter, FilterCondition.Relation.EQUALS));
+                    if (!searchQuery.isEmpty()) {
+                        filterConditions.add(new FilterCondition("name", searchQuery, FilterCondition.Relation.LIKE));
+                    }
                     try {
                         movieList = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class, filterConditions, sortQuery, ascending);
                     } catch (SQLException | IllegalAccessException | InstantiationException | NoSuchFieldException ex) {
