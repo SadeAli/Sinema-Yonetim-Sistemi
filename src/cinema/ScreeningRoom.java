@@ -104,12 +104,13 @@ public class ScreeningRoom {
 						ScreeningRoom.openingTime);
 				int extendedDuration = Session.calculateExtendedDuration(DatabaseManager.getRowById(Movie.class, movieId).getDuration());
 				while (time.plusMinutes(extendedDuration).isBefore(closingDateTime)) {
-					Session session = new Session(movieId, this.id, date, 
-							LocalTime.from(time.toLocalTime()), extendedDuration);
-					DatabaseManager.insertRow(session);
-					//TODO make this with a transaction
+					sessionList.add(new Session(movieId, this.id, date, 
+							LocalTime.from(time.toLocalTime()), extendedDuration));
+
 					time = time.plusMinutes(extendedDuration);
 				}
+
+				Session.insertList(sessionList);
 				return true;
 			}
 		} catch (Exception e) {

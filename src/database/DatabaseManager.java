@@ -127,9 +127,9 @@ public class DatabaseManager {
 			int index = 1;
 			for (FilterCondition filter : filters) {
 				if (filter.getRelationOperator().equalsIgnoreCase("LIKE")) {
-					setPreparedStatementValue(stmt, index, "%" + filter.getValue() + "%");
+					DatabaseAnnotationUtils.setPreparedStatementValue(stmt, index, "%" + filter.getValue() + "%");
 				} else {
-					setPreparedStatementValue(stmt, index, filter.getValue());
+					DatabaseAnnotationUtils.setPreparedStatementValue(stmt, index, filter.getValue());
 				}
 				index++;
 			}

@@ -1,8 +1,15 @@
 package cinema;
+import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 
 import database.*;
 
@@ -90,6 +97,104 @@ public class Session {
 		} catch (Exception e) {
 			System.err.println("Unable to get sessions: " + e.getMessage());
 			return new ArrayList<>();
+		}
+	}
+
+	protected static boolean insertList(List<Session> sessionList) {
+		// Check if the list is empty
+		if (sessionList.isEmpty()) {
+			return false;
+		}
+
+		int screeningRoomId = sessionList.getFirst().getScreeningRoomId();
+
+		Map<String, Field> columnFieldMapSession = DatabaseAnnotationUtils.getColumnNamesAndFields(Session.class);
+		Map<String, Field> columnFieldMapSeatAvailability = DatabaseAnnotationUtils.getColumnNamesAndFields(SeatAvailability.class);
+
+		
+		List<Seat> seatList;
+		try {
+			seatList = DatabaseManager.getRowsFilteredAndSortedBy(
+				Seat.class, Arrays.asList(
+					new FilterCondition(
+						"screeningRoomId", 
+						screeningRoomId, 
+						FilterCondition.Relation.EQUALS
+						)
+					), 
+				"id", 
+				true
+			);
+		} catch (IllegalAccessException | InstantiationException | NoSuchFieldException | SQLException e) {
+			e.printStackTrace();
+			return false;
+		}
+
+		// Create the query
+		String query = DatabaseAnnotationUtils.getInsertQuery(Session.class);
+		String querySeatAvailability = DatabaseAnnotationUtils.getInsertQuery(SeatAvailability.class);
+
+		// Execute the query
+		Connection conn = null;
+		PreparedStatement ps = null;
+		PreparedStatement psSeatAvailability = null;
+		try {
+
+			conn = DatabaseManager.getConnection();
+			ps = conn.prepareStatement(query, PreparedStatement.RETURN_GENERATED_KEYS);
+			psSeatAvailability = conn.prepareStatement(querySeatAvailability);
+			conn.setAutoCommit(false);
+			
+			for (Session session : sessionList) {
+				DatabaseAnnotationUtils.setPreparedStatementValueSet(columnFieldMapSession, session, ps);
+				ps.executeUpdate();
+
+				ResultSet rsId = ps.getGeneratedKeys();
+				if (rsId.next()) {
+					session.id = rsId.getInt(1);
+				} else {
+					throw new SQLException("Unable to get the generated id");
+				}
+
+				for (Seat seat : seatList) {
+					SeatAvailability seatAvailability = new SeatAvailability(true, (Integer)null, session.getId(), seat.getId());
+					DatabaseAnnotationUtils.setPreparedStatementValueSet(columnFieldMapSeatAvailability, seatAvailability, psSeatAvailability);
+					psSeatAvailability.addBatch();
+				}
+
+			}
+
+			psSeatAvailability.executeBatch();
+			conn.commit();
+			return true;
+		} catch (SQLException e) {
+
+			if (conn != null) {
+				try {
+					conn.rollback();
+				} catch (SQLException e1) {
+					System.err.println("Unable to rollback transaction: " + e1.getMessage());
+				}
+			}
+
+			System.err.println("Unable to insert sessions: " + e.getMessage());
+			return false;
+		} finally {
+			// Close the connection
+			try {
+				if (ps != null) {
+					ps.close();
+				}
+				if (psSeatAvailability != null) {
+					psSeatAvailability.close();
+				}
+				if (conn != null) {
+					conn.setAutoCommit(true);
+					conn.close();
+				}
+			} catch (SQLException e) {
+				System.err.println("Unable to close connection: " + e.getMessage());
+			}
 		}
 	}
 }
