@@ -126,7 +126,11 @@ public class DatabaseManager {
 			// Set the filter values in the PreparedStatement
 			int index = 1;
 			for (FilterCondition filter : filters) {
-				DatabaseAnnotationUtils.setPreparedStatementValue(stmt, index, filter.getValue());
+				if (filter.getRelationOperator().equalsIgnoreCase("LIKE")) {
+					setPreparedStatementValue(stmt, index, "%" + filter.getValue() + "%");
+				} else {
+					setPreparedStatementValue(stmt, index, filter.getValue());
+				}
 				index++;
 			}
 	

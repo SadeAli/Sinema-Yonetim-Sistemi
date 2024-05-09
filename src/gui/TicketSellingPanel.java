@@ -1,32 +1,36 @@
 package gui;
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
+import java.awt.GridLayout;
 import java.time.LocalDate;
 import java.util.List;
 
 import javax.swing.JButton;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
+import javax.swing.JScrollPane;
 
 import cinema.Movie;
+import cinema.ScreeningRoom;
+import cinema.Seat;
 import cinema.Session;
+import database.DatabaseManager;
+import database.FilterCondition;
 
 
 public class TicketSellingPanel extends JPanel {
 
-    private class Seat {
-        String seatNumber;
-    }
-    
     JPanel cardPanel;
     CardLayout cardLayout;
     CinemaGUI parent;
     
+    // panels
     MovieSelectionPanel movieSelectionPanel;
     SessionSelectionPanel sessionSelectionPanel;
     SeatSelectionPanel seatSelectionPanel;
     PaymentPanel paymentPanel;
 
+    // used to move data between other windows
     Movie selectedMovie;
     Session selectedSession;
     LocalDate selectedDate;
@@ -40,13 +44,13 @@ public class TicketSellingPanel extends JPanel {
         cardLayout = new CardLayout();
         cardPanel.setLayout(cardLayout);
 
-        movieSelectionPanel = new MovieSelectionPanel(this, width, height, 1);
+        movieSelectionPanel = new MovieSelectionPanel(this);
         cardPanel.add("Film", movieSelectionPanel);
 
         sessionSelectionPanel = new SessionSelectionPanel();
         cardPanel.add("Seans", sessionSelectionPanel);
 
-        seatSelectionPanel = new SeatSelectionPanel(this, width, height);
+        seatSelectionPanel = new SeatSelectionPanel();
         cardPanel.add("Koltuk", seatSelectionPanel);
 
         paymentPanel = new PaymentPanel(this, width, height);
@@ -75,8 +79,10 @@ public class TicketSellingPanel extends JPanel {
         cardLayout.show(cardPanel, "Film");
     }
 
-    public void setSelectedSession(Session session) {
+    public void selectSession(Session session) {
         selectedSession = session;
+        cardLayout.show(cardPanel, "Koltuk");
+        seatSelectionPanel.listSeats(session);
     }
 
     public void addSeat(Seat seat) {
@@ -99,19 +105,21 @@ public class TicketSellingPanel extends JPanel {
         parent.showMainMenu();
     }
 
-    private class SessionSelectionPanel extends JPanel{
+    private class SessionSelectionPanel extends JPanel {
 
         // border layout
         // north: back button / movie name / date
         // center: session buttons grid layout with scrollable pane
 
         // each session button has a session object attached to it and a listener
-        // when clicked, setSelectedSession is called with the session object
+        // when clicked, selectSession is called with the session object
         // and the card layout is switched to the seat selection panel
 
         JButton backButton;
         JLabel movieName;
         JLabel date;
+
+        List<Session> sessionsAvailable;
         
         SessionSelectionPanel() {
             setLayout(new BorderLayout());
@@ -137,18 +145,82 @@ public class TicketSellingPanel extends JPanel {
 
             movieName.setText(movie.getName());
             this.date.setText(date.toString());
+
+            try {
+                List<FilterCondition> conditions = List.of(
+                    new FilterCondition("movieId", selectedMovie.getId(), FilterCondition.Relation.EQUALS),
+                    new FilterCondition("date", date, FilterCondition.Relation.EQUALS)
+                );
+                sessionsAvailable = DatabaseManager.getRowsFilteredAndSortedBy(Session.class, conditions, "startTime", true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            JPanel sessionPanel = new JPanel();
+            sessionPanel.setLayout(new GridLayout(0, 3));
+            JScrollPane scrollPane = new JScrollPane(sessionPanel);
+            add(scrollPane, BorderLayout.CENTER);
+
+            for (Session session : sessionsAvailable) {
+                JButton sessionButton = new JButton(session.getStartTime().toString());
+                sessionButton.addActionListener(e -> {
+                    selectSession(session);
+                });
+                sessionPanel.add(sessionButton);
+            }
         }
     }
 
     private class SeatSelectionPanel extends JPanel {
-        SeatSelectionPanel(TicketSellingPanel parent, int width, int height) {
-            
+        List<Seat> seats;
+        
+        public SeatSelectionPanel() {
+                    
+        }
+
+        private ScreeningRoom getScreeningRoomFromSession(Session session) {
+            ScreeningRoom room = null;
+
+            try {
+                room = DatabaseManager.getRowById(ScreeningRoom.class, session.getScreeningRoomId());
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            return room;
+        }
+
+        public void listSeats(Session session) {
+            // get seats for the session
+            // add buttons for each seat
+            // set the session start time and screening room name
+            ScreeningRoom room = getScreeningRoomFromSession(selectedSession);
+            setLayout(new GridLayout(room.getSeatRowCount(), room.getSeatColCount()));
+
+            for (Seat seat : seats) {
+            }    
+
+            try {
+                List<FilterCondition> conditions = List.of(
+                    new FilterCondition("sessionId", selectedSession.getId(), FilterCondition.Relation.EQUALS),
+                    new FilterCondition("ScreeningRoomId", selectedSession.getScreeningRoomId(), FilterCondition.Relation.EQUALS)
+                );
+                seats = DatabaseManager.getRowsFilteredAndSortedBy(Seat.class, conditions, "seatNumber", true);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
         }
     }
 
     private class PaymentPanel extends JPanel {
-        PaymentPanel(TicketSellingPanel parent, int width, int height) {
+        public PaymentPanel(TicketSellingPanel parent, int width, int height) {
         
+        }
+    }
+
+    private class ScreeningRoomSelectionPanel {
+        public ScreeningRoomSelectionPanel() {
+            
         }
     }
 }
