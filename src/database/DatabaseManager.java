@@ -18,13 +18,13 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 public class DatabaseManager {
-	private static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine_fake.db";
+	public static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine_fake.db";
 
-    private static Connection getConnection() throws SQLException {
+    public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(SQLITE_JDBC_URL);
     }
 
-	private static boolean closeConnection(Connection connection) {
+	public static boolean closeConnection(Connection connection) {
         if (connection != null) {
             try {
 				connection.close();
@@ -78,7 +78,7 @@ public class DatabaseManager {
 	private static final Logger LOGGER = Logger.getLogger(DatabaseManager.class.getName());
 
 
-	private static void setPreparedStatementValue(PreparedStatement stmt, int index, Object value) throws SQLException {
+	public static void setPreparedStatementValue(PreparedStatement stmt, int index, Object value) throws SQLException {
 		if (value instanceof LocalDate) {
 			stmt.setString(index, ((LocalDate) value).format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
 		} else if (value instanceof Integer) {
@@ -195,7 +195,7 @@ public class DatabaseManager {
 	
 		// Add the column names and values to the query
 		for (Field field : fields) {
-			if (!DatabaseAnnotationUtils.isPrimaryKey(field)) {
+			if (!DatabaseAnnotationUtils.isPrimaryKey(field) && field.getAnnotation(ColumnName.class) != null) {
 				String columnName = DatabaseAnnotationUtils.getColumnName(field);
 				values.add(DatabaseAnnotationUtils.getFieldValue(field, object));
 				queryBuilder.append(columnName).append(", ");
@@ -216,7 +216,7 @@ public class DatabaseManager {
 		try (Connection connection = getConnection();
 			 PreparedStatement statement = connection.prepareStatement(query, Statement.RETURN_GENERATED_KEYS)) {
 			for (int i = 0, offsetForId = 0; i < values.size() + offsetForId; i++) {
-				if (!DatabaseAnnotationUtils.isPrimaryKey(fields[i])) {
+				if (!DatabaseAnnotationUtils.isPrimaryKey(fields[i]) && fields[i].getAnnotation(ColumnName.class) != null){
 					setPreparedStatementValue(statement, i + 1 - offsetForId, values.get(i - offsetForId));
 				} else {
 					offsetForId++;

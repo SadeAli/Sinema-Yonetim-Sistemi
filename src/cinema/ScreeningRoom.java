@@ -1,9 +1,15 @@
 package cinema;
+import java.lang.reflect.Field;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import javax.xml.crypto.Data;
 
@@ -59,6 +65,9 @@ public class ScreeningRoom {
 
 	// Setters
 
+	private void setID (int id) {
+		this.id = id;
+	}
 
 	public static List<ScreeningRoom> getAllScreeningRooms() {
 		try {
@@ -109,6 +118,121 @@ public class ScreeningRoom {
 		}
 
 		return false;
+	}
+
+	public boolean insertToDatabase() {
+
+		List<Seat> seatList = new ArrayList<>();
+
+		// Create the query
+		String queryScreeningRoom = DatabaseAnnotationUtils.getInsertQuery(ScreeningRoom.class);
+		String querySeat = DatabaseAnnotationUtils.getInsertQuery(Seat.class);
+
+		// Execute the query
+
+		Connection connection = null;
+		PreparedStatement stmtScreeningRoom = null;
+		PreparedStatement stmtSeat = null;
+
+		try{
+			connection = DatabaseManager.getConnection();
+			stmtScreeningRoom = connection.prepareStatement(queryScreeningRoom, PreparedStatement.RETURN_GENERATED_KEYS);
+			stmtSeat = connection.prepareStatement(querySeat);
+		
+			// Add a check for seat_col_count
+			if (this.getSeatRowCount() == 0 || this.getSeatColCount() == 0) {
+				throw new IllegalArgumentException("seat_col_count cannot be null");
+			}
+
+			DatabaseAnnotationUtils.setPreparedStatementValueSet(
+				DatabaseAnnotationUtils.getColumnNamesAndFields(ScreeningRoom.class),
+				this, stmtScreeningRoom);
+
+
+			// Start a transaction
+			connection.setAutoCommit(false);
+			
+			stmtScreeningRoom.executeUpdate();
+			ResultSet rsId = stmtScreeningRoom.getGeneratedKeys();
+
+			// Get the generated id of the screening room
+			if (rsId.next()) {
+				this.setID(rsId.getInt(1));
+			} else {
+				throw new SQLException("Unable to get the generated id");
+			}
+
+			// Create the seats
+			for (int i = 0; i < this.getSeatRowCount(); i++) {
+				for (int j = 0; j < this.getSeatColCount(); j++) {
+					seatList.add(new Seat(this.id, i, j));
+				}
+			}
+
+			System.out.println(seatList.toString());
+			
+			// Add seats to the batch
+			for (Seat seat : seatList) {
+				DatabaseAnnotationUtils.setPreparedStatementValueSet(
+					DatabaseAnnotationUtils.getColumnNamesAndFields(Seat.class), 
+					seat, stmtSeat);
+				stmtSeat.addBatch();
+			}
+
+			// Execute the batch
+			stmtSeat.executeBatch();
+			
+			// Commit the transaction
+			connection.commit();
+			return true;
+		} catch (Exception e) {
+			
+			if (connection != null) {
+				try {
+					// Roll back the transaction if something went wrong
+					connection.rollback();
+				} catch (SQLException ex) {
+					ex.printStackTrace();
+				}
+			}
+			
+			System.err.println("Unable to insert screening room: " + e.getMessage());
+			e.printStackTrace();
+			return false;
+		}
+		finally {
+			// Close the connection
+			if (stmtScreeningRoom != null) {
+				try {
+					stmtScreeningRoom.close();
+				} catch (SQLException e) {
+					System.err.println("Unable to close the statement: " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+			if (stmtSeat != null) {
+				try {
+					stmtSeat.close();
+				} catch (SQLException e) {
+					System.err.println("Unable to close the statement: " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+			if (connection != null) {
+				try {
+					connection.setAutoCommit(true);
+				} catch (SQLException e) {
+					System.err.println("Unable to set auto commit to true: " + e.getMessage());
+					e.printStackTrace();
+				}
+				try {
+					connection.close();
+				} catch (SQLException e) {
+					System.err.println("Unable to close the connection: " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		}
 	}
 
 }
