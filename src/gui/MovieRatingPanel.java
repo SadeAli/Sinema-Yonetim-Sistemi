@@ -2,13 +2,10 @@ package gui;
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
-import cinema.Movie;
-
 import javax.swing.JButton;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.Color;
-import java.awt.Dimension;
 import javax.swing.BoxLayout;
 import javax.swing.Box;
 import java.awt.BorderLayout;
@@ -22,14 +19,6 @@ public class MovieRatingPanel extends JPanel {
     private JButton submitButton;
     // a button for going back to the main menu
     private JButton backButton;
-    // the movie to rate
-    private Movie movie;
-    // the parent window
-    private CinemaGUI parent;
-    // the width of the window
-    private int width;
-    // the height of the window
-    private int height;
     // rating of the movie
     private int rating;
 
@@ -41,10 +30,6 @@ public class MovieRatingPanel extends JPanel {
      * @param height The height of the window.
      */
     MovieRatingPanel(CinemaGUI parent, int width, int height) {
-        this.parent = parent;
-        this.width = width;
-        this.height = height;
-
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
         // a text field for displaying warnings
