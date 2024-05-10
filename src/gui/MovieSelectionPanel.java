@@ -1,19 +1,37 @@
 package gui;
 
-import javax.swing.*;
+import javax.swing.BorderFactory;
+import javax.swing.BoxLayout;
+import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JDialog;
+import javax.swing.JLabel;
+import javax.swing.JPanel;
+import javax.swing.JScrollPane;
+import javax.swing.JSpinner;
+import javax.swing.JTextField;
+import javax.swing.SpinnerDateModel;
 import javax.swing.JSpinner.DateEditor;
 
 import cinema.Movie;
 import cinema.Session;
+
 import database.DatabaseManager;
 import database.FilterCondition;
 import database.FilterCondition.Relation;
 
-import java.awt.*;
-import java.awt.event.*;
-import java.util.*;
+import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+
 import java.sql.SQLException;
+
 import java.time.LocalDate;
+
+import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 /**
@@ -23,12 +41,10 @@ import java.util.List;
  * filtering, and sorting the movies.
  */
 public class MovieSelectionPanel extends JPanel {
-
     private TicketSellingPanel parent;
 
     // panel where the movies will be displayed
-    private JPanel movieContainerPanel;
-    private JScrollPane scrollPane;
+    private JPanel movieContainerPanel = new JPanel();
 
     // list of movies
     private List<Movie> movieList;
@@ -47,46 +63,49 @@ public class MovieSelectionPanel extends JPanel {
      */
     MovieSelectionPanel(TicketSellingPanel parent) {
         this.parent = parent;
-
         setLayout(new BorderLayout());
 
-        // add a toolbar to the window for search and filter options etc.
-        JToolBar toolbar = new MovieSelectionToolbar(this);
-        add(toolbar, BorderLayout.NORTH);
+        JPanel toolbar = new MovieSelectionToolbar();
+        JScrollPane scrollPane = new JScrollPane(movieContainerPanel);
 
         // panel which will contain the movie panels
-        movieContainerPanel = new JPanel();
         movieContainerPanel.setLayout(new BoxLayout(movieContainerPanel, BoxLayout.Y_AXIS));
 
         // create the scroll pane for the movie list
-        scrollPane = new JScrollPane(movieContainerPanel);
         scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
         scrollPane.getVerticalScrollBar().setUnitIncrement(5);
+
+        add(toolbar, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
     }
 
     private class MovieBanner extends JPanel {
         public MovieBanner(Movie movie) {
+            // colors and borders
             setBackground(Color.WHITE);
             setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
+            // size
             setPreferredSize(new Dimension(0, 200));
             setMaximumSize(new Dimension(5000, 200));
-            
+
+            // content
+            JLabel movieName = new JLabel(movie.getName());
+            JLabel movieRating = new JLabel("Rating: " + movie.getRating());
+            JLabel movieRelease = new JLabel("Release: " + movie.getReleaseDate().toString());
+
+            // layout
+            add(movieName);
+            add(movieRating);
+            add(movieRelease);
+
+            // actions
             addMouseListener(new MouseAdapter() {
                 @Override
                 public void mouseClicked(MouseEvent e) {
                     parent.selectMovie(movie, dateQuery);
                 }
             });
-
-            JLabel movieName = new JLabel(movie.getName());
-            JLabel movieRating = new JLabel("Rating: " + movie.getRating());
-            JLabel movieRelease = new JLabel("Release: " + movie.getReleaseDate().toString());
-
-            add(movieName);
-            add(movieRating);
-            add(movieRelease);
         }
     }
 
@@ -102,16 +121,15 @@ public class MovieSelectionPanel extends JPanel {
         movieContainerPanel.repaint();
     }
 
-    public void goBack() {
-        parent.showMainMenu();
-    }
-
     public void onVisible() {
         applyFilter();
     }
 
     public void applyFilter() {
+        List<Session> sessions = new ArrayList<>();
+        
         try {
+            // get movies
             movieList = DatabaseManager.getRowsFilteredAndSortedBy(
                     Movie.class,
                     nameQuery.isEmpty() ? List.of()
@@ -119,67 +137,57 @@ public class MovieSelectionPanel extends JPanel {
                     sortOrder,
                     ascending);
 
-            List<FilterCondition> sessionFilters = new ArrayList<>();
-            sessionFilters.add(new FilterCondition("date", dateQuery, Relation.EQUALS));
-            List<Session> sessions = DatabaseManager.getRowsFilteredAndSortedBy(
+            // get sessions
+            sessions = DatabaseManager.getRowsFilteredAndSortedBy(
                     Session.class,
-                    sessionFilters,
+                    List.of(new FilterCondition("date", dateQuery, Relation.EQUALS)),
                     "startTime",
                     true);
-
-            List<Movie> availableMovies = new ArrayList<>();
-
-            for (Movie movie : movieList) {
-                for (Session session : sessions) {
-                    if (session.getMovieId() == movie.getId()) {
-                        availableMovies.add(movie);
-                        break;
-                    }
-                }
-            }
-
-            movieList = availableMovies;
 
         } catch (SQLException | IllegalAccessException | InstantiationException | NoSuchFieldException ex) {
             ex.printStackTrace();
         }
 
+        List<Movie> availableMovies = new ArrayList<>();
+        for (Movie movie : movieList) {
+            for (Session session : sessions) {
+                if (session.getMovieId() == movie.getId()) {
+                    availableMovies.add(movie);
+                    // we found out that movie exists
+                    // so we don't need to check other sessions
+                    // continue to next movie
+                    break;
+                }
+            }
+        }
+
+        movieList = availableMovies;
+
         reapintMoviePanels();
     }
 
-    public class MovieSelectionToolbar extends JToolBar {
+    public class MovieSelectionToolbar extends JPanel {
 
-        MovieSelectionToolbar(MovieSelectionPanel parent) {
-            setFloatable(false);
+        MovieSelectionToolbar() {
+            setLayout(new BorderLayout());
 
-            JPanel toolbarPanel = new JPanel();
-            toolbarPanel.setLayout(new BorderLayout());
-
-            // back button
             JButton backButton = new JButton("Back");
+            JButton filterButton = new JButton("Filter");
+
+            add(backButton, BorderLayout.WEST);
+            add(filterButton, BorderLayout.EAST);
+
             backButton.addActionListener(e -> {
                 parent.goBack();
             });
-            toolbarPanel.add(backButton, BorderLayout.WEST);
 
-            // filter window
             JDialog filterWindow = new FilterPopup();
-
-            // open a new window when filter button is clicked
-            JButton filterButton = new JButton("Filter");
             filterButton.addActionListener(e -> {
                 filterWindow.setVisible(true);
             });
-            toolbarPanel.add(filterButton, BorderLayout.EAST);
-
-            add(toolbarPanel);
         }
 
         private class FilterPopup extends JDialog {
-            private JTextField searchField;
-            private JComboBox<String> sortComboBox;
-            private SpinnerDateModel dateModel;
-
             FilterPopup() {
                 setSize(300, 300);
                 setVisible(false);
@@ -187,36 +195,47 @@ public class MovieSelectionPanel extends JPanel {
                 setLocationRelativeTo(null);
                 setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
 
-                // add spinner for date filter
-                dateModel = new SpinnerDateModel();
-                dateModel.setCalendarField(Calendar.DAY_OF_MONTH);
+                // components
+                JTextField searchField = new JTextField();
+                SpinnerDateModel dateModel = new SpinnerDateModel();
                 JSpinner dateSpinner = new JSpinner(dateModel);
-                dateSpinner.setPreferredSize(new Dimension(300, 50));
                 DateEditor editor = new JSpinner.DateEditor(dateSpinner, "dd/MM/yy");
-                dateSpinner.setEditor(editor);
-                add(dateSpinner);
+                JPanel buttonPanel = new JPanel();
 
-                searchField = new JTextField();
+                JComboBox<SortOption> sortComboBox = new JComboBox<>(new SortOption[] {
+                        new SortOption("Sort by Name", "name", true),
+                        new SortOption("Sort by Rating", "rating", false),
+                        new SortOption("Sort by Release Date", "releaseDate", false)
+                });
+
+                // add spinner for date filter
+                dateModel.setCalendarField(Calendar.DAY_OF_MONTH);
+                dateSpinner.setPreferredSize(new Dimension(300, 50));
+                dateSpinner.setEditor(editor);
+
+                // add text field for name filter
                 searchField.setDragEnabled(false);
                 searchField.setPreferredSize(new Dimension(300, 50));
-                add(searchField);
 
-                sortComboBox = new JComboBox<>();
-
-                for (String option : new String[] {
-                        "Sort by Name",
-                        "Sort by Rating",
-                        "Sort by Release Date"
-                }) {
-                    sortComboBox.addItem(option);
-                }
-                add(sortComboBox);
-
-                JPanel buttonPanel = new JPanel();
+                // a small panel for the apply and cancel buttons
                 buttonPanel.setLayout(new BorderLayout());
-                buttonPanel.setPreferredSize(new Dimension(300, 10));
-
+                buttonPanel.setMaximumSize(new Dimension(5000, 20));
                 JButton applyButton = new JButton("Apply");
+                JButton cancelButton = new JButton("Cancel");
+                buttonPanel.add(applyButton, BorderLayout.EAST);
+                buttonPanel.add(cancelButton, BorderLayout.WEST);
+
+                // add components to the dialog
+                add(dateSpinner);
+                add(searchField);
+                add(sortComboBox);
+                add(buttonPanel);
+
+                // actions
+                cancelButton.addActionListener(e -> {
+                    setVisible(false);
+                });
+
                 applyButton.addActionListener(e -> {
 
                     // dateQuery
@@ -227,34 +246,39 @@ public class MovieSelectionPanel extends JPanel {
                     nameQuery = searchField.getText();
 
                     // sortOrder
-                    switch ((String) sortComboBox.getSelectedItem()) {
-                        case "Sort by Name":
-                            sortOrder = "name";
-                            ascending = true;
-                            break;
-                        case "Sort by Rating":
-                            sortOrder = "rating";
-                            ascending = false;
-                            break;
-                        case "Sort by Release Date":
-                            sortOrder = "releaseDate";
-                            ascending = false;
-                            break;
-                    }
+                    final SortOption selectedSort = (SortOption) sortComboBox.getSelectedItem();
+                    sortOrder = selectedSort.getSort();
+                    ascending = selectedSort.isAscending();
 
                     applyFilter();
 
                     setVisible(false);
                 });
+            }
 
-                JButton cancelButton = new JButton("Cancel");
-                cancelButton.addActionListener(e -> {
-                    setVisible(false);
-                });
+            private class SortOption {
+                private final String name;
+                private final String sort;
+                private final boolean ascending;
 
-                buttonPanel.add(applyButton, BorderLayout.EAST);
-                buttonPanel.add(cancelButton, BorderLayout.WEST);
-                add(buttonPanel);
+                public SortOption(String name, String sort, boolean ascending) {
+                    this.name = name;
+                    this.sort = sort;
+                    this.ascending = ascending;
+                }
+
+                public String getSort() {
+                    return sort;
+                }
+
+                public boolean isAscending() {
+                    return ascending;
+                }
+
+                @Override
+                public String toString() {
+                    return name;
+                }
             }
         }
     }

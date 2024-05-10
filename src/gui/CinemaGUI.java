@@ -1,4 +1,18 @@
 package gui;
+
+import java.awt.CardLayout;
+import java.awt.Component;
+import java.awt.Font;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.BorderLayout;
+
+import javax.swing.JOptionPane;
+import javax.swing.JLabel;
+import javax.swing.JList;
+import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
+import javax.swing.JToolBar;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -6,31 +20,17 @@ import javax.swing.JTabbedPane;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 
-import java.awt.CardLayout;
-import java.awt.Component;
-
-import javax.swing.JOptionPane;
-import javax.swing.JLabel;
-import javax.swing.JList;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.time.LocalDate;
-
-import javax.swing.BoxLayout;
-import javax.swing.DefaultListCellRenderer;
-import javax.swing.JToolBar;
-
 import cinema.Movie;
 import cinema.ScreeningRoom;
 import cinema.Session;
+
 import database.DatabaseManager;
 import database.FilterCondition;
 
-import java.awt.BorderLayout;
 import java.util.ArrayList;
 import java.util.List;
-import java.awt.*;
 
+import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
 
