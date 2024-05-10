@@ -24,7 +24,7 @@ import cinema.Session;
 import database.DatabaseManager;
 import database.FilterCondition;
 
-public class TicketSellingPanel extends JPanel {
+public class TicketSellingPanel extends JPanel implements OnVisible {
 
     CardLayout cardLayout = new CardLayout();
     CinemaGUI parent;
@@ -41,7 +41,7 @@ public class TicketSellingPanel extends JPanel {
     LocalDate selectedDate;
     List<SeatAvailability> selectedSeats = new ArrayList<>();
 
-    TicketSellingPanel(CinemaGUI parent, int width, int height) {
+    TicketSellingPanel(CinemaGUI parent) {
         this.parent = parent;
         setLayout(cardLayout);
 

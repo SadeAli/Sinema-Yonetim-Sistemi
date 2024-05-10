@@ -1,4 +1,5 @@
 package gui;
+
 import javax.swing.JPanel;
 import javax.swing.JTextField;
 
@@ -11,16 +12,8 @@ import javax.swing.Box;
 import java.awt.BorderLayout;
 
 public class MovieRatingPanel extends JPanel {
-    // text field for entering the ticket number
-    private JTextField ticketNumberField;
-    // 5 buttons for rating the movie
-    private JButton[] ratingButtons;
-    // button for submitting the rating
-    private JButton submitButton;
-    // a button for going back to the main menu
-    private JButton backButton;
-    // rating of the movie
-    private int rating;
+
+    private int rating = 0;
 
     /**
      * Constructor for the movie rating window.
@@ -32,25 +25,43 @@ public class MovieRatingPanel extends JPanel {
     MovieRatingPanel(CinemaGUI parent, int width, int height) {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
 
-        // a text field for displaying warnings
+        // main components
+        JTextField ticketNumberField = new JTextField();
         JTextField warningField = new JTextField();
-        warningField.setBounds(width / 2 - 100, height / 2 - 250, 200, 30);
-        warningField.setPreferredSize(warningField.getSize());
-        add(warningField);
-
-        // a text field for entering the ticket number
-        ticketNumberField = new JTextField();
-        ticketNumberField.setBounds(width / 2 - 100, height / 2 - 200, 200, 30);
-        ticketNumberField.setPreferredSize(ticketNumberField.getSize());
-        add(ticketNumberField);
-
-        // 5 buttons for rating the movie
-        // create a horizontal box for rating buttons
+        JPanel buttonPanel = new JPanel(new BorderLayout());
         Box ratingBox = Box.createHorizontalBox();
 
-        ratingButtons = new JButton[5];
+        // a text field for displaying warnings
+        warningField.setBounds(width / 2 - 100, height / 2 - 250, 200, 30);
+        warningField.setPreferredSize(warningField.getSize());
+
+        // a text field for entering the ticket number
+        ticketNumberField.setBounds(width / 2 - 100, height / 2 - 200, 200, 30);
+        ticketNumberField.setPreferredSize(ticketNumberField.getSize());
+
+        // 5 buttons for rating the movie
+        JButton[] ratingButtons = new JButton[5];
         for (int i = 0; i < 5; i++) {
             ratingButtons[i] = new JButton(Integer.toString(i + 1));
+            ratingBox.add(ratingButtons[i]);
+        }
+
+        // sub panel components
+        JButton submitButton = new JButton("Submit");
+        JButton backButton = new JButton("Back");
+
+        // fill sub panels
+        buttonPanel.add(submitButton, BorderLayout.EAST);
+        buttonPanel.add(backButton, BorderLayout.WEST);
+
+        // add the fields
+        add(warningField);
+        add(ticketNumberField);
+        add(ratingBox);
+        add(buttonPanel);
+
+        // actions
+        for (int i = 0; i < 5; i++) {
             ratingButtons[i].addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -66,19 +77,13 @@ public class MovieRatingPanel extends JPanel {
                             }
                             rating = j + 1; // Save the rating
                         }
-                        }
+                    }
                 }
             });
-            ratingBox.add(ratingButtons[i]);
         }
 
-        add(ratingBox);
+        backButton.addActionListener(e -> parent.showMainMenu());
 
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BorderLayout());
-
-        // a button for submitting the rating
-        submitButton = new JButton("Submit");
         submitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -92,19 +97,5 @@ public class MovieRatingPanel extends JPanel {
                 parent.showMainMenu();
             }
         });
-        buttonPanel.add(submitButton, BorderLayout.EAST);
-
-        // a button for going back to the main menu
-        backButton = new JButton("Back");
-        backButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                // go back to the main menu
-                parent.showMainMenu();
-            }
-        });
-        buttonPanel.add(backButton, BorderLayout.WEST);
-
-        add(buttonPanel);
     }
 }

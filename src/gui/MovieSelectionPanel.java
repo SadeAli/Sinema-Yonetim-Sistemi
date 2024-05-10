@@ -40,7 +40,7 @@ import java.util.List;
  * This window displays a list of movies and provides options for searching,
  * filtering, and sorting the movies.
  */
-public class MovieSelectionPanel extends JPanel {
+public class MovieSelectionPanel extends JPanel implements OnVisible{
     private TicketSellingPanel parent;
 
     // panel where the movies will be displayed
