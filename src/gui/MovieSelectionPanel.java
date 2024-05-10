@@ -153,6 +153,9 @@ public class MovieSelectionPanel extends JPanel {
             for (Session session : sessions) {
                 if (session.getMovieId() == movie.getId()) {
                     availableMovies.add(movie);
+                    // we found out that movie exists
+                    // so we don't need to check other sessions
+                    // continue to next movie
                     break;
                 }
             }
