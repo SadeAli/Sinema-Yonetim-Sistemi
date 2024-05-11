@@ -1,4 +1,6 @@
 package cinema;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.time.format.DateTimeFormatter;
@@ -45,14 +47,6 @@ public class Movie {
 
 	public Movie(String name, int duration, LocalDate release,
 					LocalDate lastScreeningDate) {
-		//TODO Check if the movie name is unique
-		//TODO Check if the duration is a positive integer
-		//TODO Check if the release date is before the last show day
-		//TODO Check if the last show day is after the current date (if necessary, based on the project requirements)
-		//TODO Check if arguemnts are not null
-		//TODO Check if the movie name is valid (such as not containing special characters, not too long, etc.)
-
-		//TODO Add to the database
 
 		this.name = name;
 		this.duration = duration;
@@ -106,28 +100,97 @@ public class Movie {
 	}
 	
     // Method to add a rating to the movie
-    public boolean addRating(int newRate, int ratingCount) {
-        //TODO Update rating and ticket.is_rated in the database
+    public static boolean addRating(int id, int newRate, int ratingCount) {
+		String sqlGet = "SELECT rating, rating_count FROM movie WHERE id = ?";
+		String sqlUpdate = "UPDATE movie SET rating = ?, rating_count = ? WHERE id = ?";
 		
 		if (newRate > RATING_UPPER_LIMIT || newRate < RATING_LOWER_LIMIT) {
-			// Invalid rating value, must be between 0 and 5 (inclusive)
+			// Invalid rating value, must be between 1 and 5 (inclusive)
             return false;
         }
 
-        this.ratingCount += ratingCount;
-        
-        // To prevent overflow
-        rating = rating + (newRate - rating) / ((float) this.ratingCount / ratingCount);
-        return true;
+		Connection conn = null;
+		PreparedStatement psGet = null;
+		PreparedStatement psUpdate = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			psGet = conn.prepareStatement(sqlGet);
+			psUpdate = conn.prepareStatement(sqlUpdate);
+
+			// Start the transaction
+			conn.setAutoCommit(false);
+			
+			// Get the current rating and rating count
+			psGet.setInt(1, id);
+			ResultSet rs = psGet.executeQuery();
+
+			if (rs.next()) {
+				float currentRating = rs.getFloat("rating");
+				int currentRatingCount = rs.getInt("rating_count");
+
+				int newRatingCount = currentRatingCount + ratingCount;
+				float newRating = currentRating + (newRate - currentRating) / ((float) currentRatingCount / ratingCount);
+
+				// Update the rating and rating count
+				psUpdate.setFloat(1, newRating);
+				psUpdate.setInt(2, newRatingCount);
+				psUpdate.setInt(3, id);
+				psUpdate.executeUpdate();
+			} else {
+				throw new SQLException("Movie not found");
+			}
+
+			// Commit the transaction
+			conn.commit();
+			return true;
+		} catch (Exception e) {
+			if (conn != null) {
+				try {
+					conn.rollback();
+				} catch (SQLException ex) {
+					System.err.println("Error rolling back transaction");
+					ex.printStackTrace();
+				}
+			}
+			return false;
+		} finally {
+			if (psGet != null) {
+				try {
+					psGet.close();
+				} catch (SQLException e) {
+					System.err.println("Error closing prepared statement");
+					e.printStackTrace();
+				}
+			}
+			if (psUpdate != null) {
+				try {
+					psUpdate.close();
+				} catch (SQLException e) {
+					System.err.println("Error closing prepared statement");
+					e.printStackTrace();
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.setAutoCommit(true);
+				} catch (SQLException e) {
+					System.err.println("Error setting auto commit to true");
+					e.printStackTrace();
+				}
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					System.err.println("Error closing connection");
+					e.printStackTrace();
+				}
+			}
+		}
     }
 
 	// Method to check if a movie is currently showing
 	public boolean isCurrentlyShowing() {
 		return LocalDate.now().isBefore(lastScreeningDate) && LocalDate.now().isAfter(releaseDate);
 	}
-
-	//TODO Method to check if a movie with the given id exists
-    //TODO Method to get a movie by its id
 
 	@Override
     public String toString() {
