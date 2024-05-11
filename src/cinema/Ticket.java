@@ -14,16 +14,16 @@ public class Ticket {
 	@ColumnName("is_rated")
 	private boolean isRated;
 
-	@ColumnName("seat_count")
-	private int seatCount;
+	@ColumnName("is_paid")
+	private boolean isPaid;
 
 	// Constructors
 
 	private Ticket() {}
 
-	public Ticket(boolean isRated, int seatCount) {
+	public Ticket(boolean isRated, boolean isPaid) {
 		this.isRated = isRated;
-		this.seatCount = seatCount;
+		this.isPaid = isPaid;
 	}
 
 	// Getters
@@ -36,11 +36,15 @@ public class Ticket {
 		return isRated;
 	}
 
-	public int getSeatCount() {
-		return seatCount;
+	public boolean isPaid() {
+		return isPaid;
 	}
 
 	// Setters
+
+	public void setId (int id) {
+		this.id = id;
+	}
 
 
 	public static List<Ticket> getAllTickets() {
