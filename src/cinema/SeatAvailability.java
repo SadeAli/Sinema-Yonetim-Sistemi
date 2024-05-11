@@ -6,6 +6,7 @@ import java.sql.SQLException;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import javax.naming.spi.DirStateFactory.Result;
 
@@ -81,7 +82,10 @@ public class SeatAvailability {
 	public static Ticket bookSeatList (List<SeatAvailability> seatAvList) {
 		String sql = "UPDATE seat_availability SET is_available = 0, ticket_id = ? WHERE id = ?";
 		String sqlTicket = DatabaseAnnotationUtils.getInsertQuery(Ticket.class);
+		String sqlTicketCode = "UPDATE ticket SET code = ? WHERE id = ?";
 		Integer ticketId = null;
+		int code = 0;
+		int rand = new Random().nextInt(10000);
 
 		// Check if the list is empty
 		if (seatAvList.isEmpty()) {
@@ -91,10 +95,12 @@ public class SeatAvailability {
 		Connection conn = null;
 		PreparedStatement stmt = null;
 		PreparedStatement stmtTicket = null;
+		PreparedStatement stmtTicketCode = null;
 		try {
 			conn = DatabaseManager.getConnection();
 			stmt = conn.prepareStatement(sql);
 			stmtTicket = conn.prepareStatement(sqlTicket);
+			stmtTicketCode = conn.prepareStatement(sqlTicketCode);
 
 			// Start the transaction
 			conn.setAutoCommit(false);
@@ -112,10 +118,22 @@ public class SeatAvailability {
 			stmtTicket.executeUpdate();
 			ResultSet ticketResult = stmtTicket.getGeneratedKeys();
 			if (ticketResult.next()) {
-				ticket.setId(ticketResult.getInt(1));
+				ticketId = ticketResult.getInt(1);
 			} else {
 				throw new SQLException("Unable to get the ticket id");
 			}
+
+			ticket.setId(ticketId);
+
+			// Generate code
+			code = (ticketId%10) + ((ticketId/10)%10)*100 + ((ticketId/100)%10)*10000 + ((ticketId/1000)%10)*1000000;
+			code += (rand%10)*10 + ((rand/10)%10)*1000 + ((rand/100)%10)*100000 + ((rand/1000)%10)*10000000;
+			ticket.setCode(code);
+
+			// Update the ticket code
+			stmtTicketCode.setInt(1, code);
+			stmtTicketCode.setInt(2, ticketId);
+			stmtTicketCode.executeUpdate();
 
 			// Update the seat availabilities
 			for (SeatAvailability seatAv : seatAvList) {
@@ -145,6 +163,20 @@ public class SeatAvailability {
 			if (stmt != null) {
 				try {
 					stmt.close();
+				} catch (Exception e) {
+					System.err.println("Unable to close statement: " + e.getMessage());
+				}
+			}
+			if (stmtTicket != null) {
+				try {
+					stmtTicket.close();
+				} catch (Exception e) {
+					System.err.println("Unable to close statement: " + e.getMessage());
+				}
+			}
+			if (stmtTicketCode != null) {
+				try {
+					stmtTicketCode.close();
 				} catch (Exception e) {
 					System.err.println("Unable to close statement: " + e.getMessage());
 				}
