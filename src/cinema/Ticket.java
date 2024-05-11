@@ -25,6 +25,8 @@ public class Ticket {
 	@ColumnName("purchase_date")
 	private LocalDate purchaseDate;
 
+	@ColumnName("code")
+	private int code;
 	// Constructors
 
 	private Ticket() {}
@@ -53,10 +55,18 @@ public class Ticket {
 		return purchaseDate;
 	}
 
+	public int getCode() {
+		return code;
+	}
+
 	// Setters
 
 	public void setId (int id) {
 		this.id = id;
+	}
+
+	public void setCode (int code) {
+		this.code = code;
 	}
 
 
