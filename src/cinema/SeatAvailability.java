@@ -2,6 +2,8 @@ package cinema;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -98,7 +100,7 @@ public class SeatAvailability {
 			conn.setAutoCommit(false);
 
 			// Create a ticket
-			Ticket ticket = new Ticket(false, false);
+			Ticket ticket = new Ticket(false, false, LocalDate.now());
 
 			// Set the values of the ticket
 			DatabaseAnnotationUtils.setPreparedStatementValueSet(
@@ -112,14 +114,14 @@ public class SeatAvailability {
 			if (ticketResult.next()) {
 				ticket.setId(ticketResult.getInt(1));
 			} else {
-				return (Ticket)null;
+				throw new SQLException("Unable to get the ticket id");
 			}
 
 			// Update the seat availabilities
 			for (SeatAvailability seatAv : seatAvList) {
 				SeatAvailability seatAvDB = DatabaseManager.getRowById(SeatAvailability.class, seatAv.getId());
 				if (seatAvDB == null || !seatAvDB.isAvailable()) {
-					return (Ticket)null;
+					throw new SQLException("Seat is not available");
 				}
 				stmt.setInt(1, ticket.getId());
 				stmt.setInt(2, seatAv.getId());
@@ -127,6 +129,7 @@ public class SeatAvailability {
 			}
 
 			stmt.executeBatch();
+			conn.commit();
 			return ticket;
 		} catch (Exception e) {
 			System.err.println("Unable to book seat list: " + e.getMessage());
