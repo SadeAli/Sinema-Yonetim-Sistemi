@@ -127,7 +127,7 @@ public class SeatAvailability {
 
 			// Generate code
 			code = (ticketId%10) + ((ticketId/10)%10)*100 + ((ticketId/100)%10)*10000 + ((ticketId/1000)%10)*1000000;
-			code += (rand%10) + ((rand/10)%10)*100 + ((rand/100)%10)*10000 + ((rand/1000)%10)*1000000;
+			code += (rand%10)*10 + ((rand/10)%10)*1000 + ((rand/100)%10)*100000 + ((rand/1000)%10)*10000000;
 			ticket.setCode(code);
 
 			// Update the ticket code
