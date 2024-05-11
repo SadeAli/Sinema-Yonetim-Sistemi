@@ -380,7 +380,7 @@ public class TicketSellingPanel extends JPanel {
                 return false;
             }
 
-            if (cardNumber.length() != 8) {
+            if (cardNumber.length() != 16) {
                 JOptionPane.showMessageDialog(this, "Card number must be 16 digits long.");
                 return false;
             }
