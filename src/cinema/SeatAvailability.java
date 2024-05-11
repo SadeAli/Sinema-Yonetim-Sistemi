@@ -1,8 +1,11 @@
 package cinema;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.util.ArrayList;
 import java.util.List;
+
+import javax.naming.spi.DirStateFactory.Result;
 
 import database.*;
 
@@ -73,32 +76,58 @@ public class SeatAvailability {
 		}
 	}
 
-	public static boolean bookSeatList (List<SeatAvailability> seatAvList) {
-		String sql = "UPDATE seat_availability SET is_available = 0 WHERE id = ?";
+	public static Ticket bookSeatList (List<SeatAvailability> seatAvList) {
+		String sql = "UPDATE seat_availability SET is_available = 0, ticket_id = ? WHERE id = ?";
+		String sqlTicket = DatabaseAnnotationUtils.getInsertQuery(Ticket.class);
+		Integer ticketId = null;
+
 		// Check if the list is empty
 		if (seatAvList.isEmpty()) {
-			return false;
+			return (Ticket)null;
 		}
 
 		Connection conn = null;
 		PreparedStatement stmt = null;
+		PreparedStatement stmtTicket = null;
 		try {
 			conn = DatabaseManager.getConnection();
 			stmt = conn.prepareStatement(sql);
+			stmtTicket = conn.prepareStatement(sqlTicket);
 
 			// Start the transaction
 			conn.setAutoCommit(false);
+
+			// Create a ticket
+			Ticket ticket = new Ticket(false, false);
+
+			// Set the values of the ticket
+			DatabaseAnnotationUtils.setPreparedStatementValueSet(
+				DatabaseAnnotationUtils.getColumnNamesAndFields(
+					Ticket.class), 
+				ticket, stmtTicket);
+			
+			// Insert the ticket and get the id
+			stmtTicket.executeUpdate();
+			ResultSet ticketResult = stmtTicket.getGeneratedKeys();
+			if (ticketResult.next()) {
+				ticket.setId(ticketResult.getInt(1));
+			} else {
+				return (Ticket)null;
+			}
+
+			// Update the seat availabilities
 			for (SeatAvailability seatAv : seatAvList) {
 				SeatAvailability seatAvDB = DatabaseManager.getRowById(SeatAvailability.class, seatAv.getId());
 				if (seatAvDB == null || !seatAvDB.isAvailable()) {
-					return false;
+					return (Ticket)null;
 				}
-				stmt.setInt(1, seatAv.getId());
+				stmt.setInt(1, ticket.getId());
+				stmt.setInt(2, seatAv.getId());
 				stmt.addBatch();
 			}
 
 			stmt.executeBatch();
-			return true;
+			return ticket;
 		} catch (Exception e) {
 			System.err.println("Unable to book seat list: " + e.getMessage());
 			if (conn != null) {
@@ -108,7 +137,7 @@ public class SeatAvailability {
 					System.err.println("Unable to rollback transaction: " + e2.getMessage());
 				}
 			}
-			return false;
+			return (Ticket)null;
 		} finally {
 			if (stmt != null) {
 				try {
