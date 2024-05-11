@@ -1,4 +1,4 @@
-package gui;
+package gui.mainPanels;
 
 import java.awt.BorderLayout;
 import java.awt.CardLayout;
@@ -28,9 +28,10 @@ import cinema.ScreeningRoom;
 import cinema.Seat;
 import cinema.SeatAvailability;
 import cinema.Session;
-
+import cinema.Ticket;
 import database.DatabaseManager;
 import database.FilterCondition;
+import gui.CinemaGUI;
 
 public class TicketSellingPanel extends JPanel {
 
@@ -49,7 +50,7 @@ public class TicketSellingPanel extends JPanel {
     LocalDate selectedDate;
     List<SeatAvailability> selectedSeats = new ArrayList<>();
 
-    TicketSellingPanel(CinemaGUI parent, int width, int height) {
+    public TicketSellingPanel(CinemaGUI parent, int width, int height) {
         this.parent = parent;
         setLayout(cardLayout);
 
@@ -363,11 +364,13 @@ public class TicketSellingPanel extends JPanel {
                 checkPaymentInfo(nameField.getText(), surnameField.getText(), cardNumberField.getText(),
                         cvvField.getText(), (java.util.Date) expiryDateSpinner.getValue());
 
-                if (SeatAvailability.bookSeatList(selectedSeats)) {
+                Ticket ticket = SeatAvailability.bookSeatList(selectedSeats);
+
+                if (ticket == null) {
+                    System.out.println("Failed to book seats");
+                } else {
                     System.out.println("Seats booked successfully");
                     selectedSeats.clear();
-                } else {
-                    System.out.println("Failed to book seats");
                 }
             });
         }

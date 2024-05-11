@@ -1,10 +1,19 @@
-package gui;
+package gui.mainPanels;
+
 import javax.swing.JPanel;
 import javax.swing.JTextField;
+import javax.swing.border.EmptyBorder;
+
+import cinema.Movie;
+import cinema.Ticket;
+import database.DatabaseManager;
+import gui.CinemaGUI;
 
 import javax.swing.JButton;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.awt.Color;
 import javax.swing.BoxLayout;
 import javax.swing.Box;
@@ -29,20 +38,25 @@ public class MovieRatingPanel extends JPanel {
      * @param width  The width of the window.
      * @param height The height of the window.
      */
-    MovieRatingPanel(CinemaGUI parent, int width, int height) {
+    public MovieRatingPanel(CinemaGUI parent, int width, int height) {
         setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        setBorder(new EmptyBorder(250, 100, 250, 100));
 
         // a text field for displaying warnings
         JTextField warningField = new JTextField();
+        ticketNumberField = new JTextField();
+
+        // set the initial rating to 0
+        rating = 0;
+
+        warningField.setEditable(false);
         warningField.setBounds(width / 2 - 100, height / 2 - 250, 200, 30);
         warningField.setPreferredSize(warningField.getSize());
-        add(warningField);
 
         // a text field for entering the ticket number
-        ticketNumberField = new JTextField();
+        ticketNumberField.setText("Enter the ticket number");
         ticketNumberField.setBounds(width / 2 - 100, height / 2 - 200, 200, 30);
         ticketNumberField.setPreferredSize(ticketNumberField.getSize());
-        add(ticketNumberField);
 
         // 5 buttons for rating the movie
         // create a horizontal box for rating buttons
@@ -51,6 +65,38 @@ public class MovieRatingPanel extends JPanel {
         ratingButtons = new JButton[5];
         for (int i = 0; i < 5; i++) {
             ratingButtons[i] = new JButton(Integer.toString(i + 1));
+            ratingBox.add(ratingButtons[i]);
+        }
+
+        JPanel buttonPanel = new JPanel();
+        submitButton = new JButton("Submit");
+        backButton = new JButton("Back");
+
+        buttonPanel.setLayout(new BorderLayout());
+
+        buttonPanel.add(submitButton, BorderLayout.EAST);
+        buttonPanel.add(backButton, BorderLayout.WEST);
+
+        add(warningField);
+        add(ticketNumberField);
+        add(ratingBox);
+        add(buttonPanel);
+
+        ticketNumberField.addFocusListener(new FocusAdapter() {
+            @Override
+            public void focusGained(FocusEvent e) {
+                ticketNumberField.setText("");
+            }
+
+            @Override
+            public void focusLost(FocusEvent e) {
+                if (ticketNumberField.getText().equals("")) {
+                    ticketNumberField.setText("Enter the ticket number");
+                }
+            }
+        });
+
+        for (int i = 0; i < 5; i++) {
             ratingButtons[i].addActionListener(new ActionListener() {
                 @Override
                 public void actionPerformed(ActionEvent e) {
@@ -66,19 +112,11 @@ public class MovieRatingPanel extends JPanel {
                             }
                             rating = j + 1; // Save the rating
                         }
-                        }
+                    }
                 }
             });
-            ratingBox.add(ratingButtons[i]);
         }
 
-        add(ratingBox);
-
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new BorderLayout());
-
-        // a button for submitting the rating
-        submitButton = new JButton("Submit");
         submitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -86,16 +124,37 @@ public class MovieRatingPanel extends JPanel {
                     warningField.setText("Please select a rating!");
                     return;
                 }
-                // submit the rating
-                System.out.println("Rating submitted: " + rating + " stars");
-                // go back to the main menu
-                parent.showMainMenu();
+
+                String ticketNumber = ticketNumberField.getText();
+                try {
+                    int ticketId = Integer.parseInt(ticketNumber);
+                    Ticket ticket = DatabaseManager.getRowById(Ticket.class, ticketId);
+
+                    if (ticket == null) {
+                        warningField.setText("Ticket not found!");
+                    }
+
+                    if (ticket.isPaid() == false) {
+                        warningField.setText("Ticket is not paid!");
+                    }
+
+                    if (ticket.isRated() == true) {
+                        warningField.setText("Rating already submitted!");
+                    }
+
+                    // TODO add rating to the database
+                    // TODO update the ticket to be rated
+                    
+                    parent.showMainMenu();
+                } catch (NumberFormatException ex) {
+                    warningField.setText("Invalid ticket number!");
+                } catch (Exception ex) {
+                    warningField.setText("An error occurred while submitting the rating!");
+                    ex.printStackTrace();
+                }
             }
         });
-        buttonPanel.add(submitButton, BorderLayout.EAST);
 
-        // a button for going back to the main menu
-        backButton = new JButton("Back");
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
@@ -103,8 +162,5 @@ public class MovieRatingPanel extends JPanel {
                 parent.showMainMenu();
             }
         });
-        buttonPanel.add(backButton, BorderLayout.WEST);
-
-        add(buttonPanel);
     }
 }
