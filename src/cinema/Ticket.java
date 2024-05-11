@@ -1,4 +1,5 @@
 package cinema;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,13 +18,17 @@ public class Ticket {
 	@ColumnName("is_paid")
 	private boolean isPaid;
 
+	@ColumnName("purchase_date")
+	private LocalDate purchaseDate;
+
 	// Constructors
 
 	private Ticket() {}
 
-	public Ticket(boolean isRated, boolean isPaid) {
+	public Ticket(boolean isRated, boolean isPaid, LocalDate purchaseDate) {
 		this.isRated = isRated;
 		this.isPaid = isPaid;
+		this.purchaseDate = purchaseDate;
 	}
 
 	// Getters
@@ -38,6 +43,10 @@ public class Ticket {
 
 	public boolean isPaid() {
 		return isPaid;
+	}
+
+	public LocalDate getPurchaseDate() {
+		return purchaseDate;
 	}
 
 	// Setters

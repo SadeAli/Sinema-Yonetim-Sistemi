@@ -2,6 +2,7 @@ package cinema;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -98,7 +99,7 @@ public class SeatAvailability {
 			conn.setAutoCommit(false);
 
 			// Create a ticket
-			Ticket ticket = new Ticket(false, false);
+			Ticket ticket = new Ticket(false, false, LocalDate.now());
 
 			// Set the values of the ticket
 			DatabaseAnnotationUtils.setPreparedStatementValueSet(
