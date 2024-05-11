@@ -1,6 +1,7 @@
 package gui;
 
 import java.awt.CardLayout;
+import java.awt.Color;
 import java.awt.Component;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
@@ -13,6 +14,10 @@ import javax.swing.JList;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JToolBar;
+import javax.swing.LookAndFeel;
+import javax.swing.SwingUtilities;
+import javax.swing.UIManager;
+import javax.swing.plaf.ColorUIResource;
 import javax.swing.JFrame;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
@@ -33,12 +38,10 @@ import java.util.List;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 
-
-
 public class CinemaGUI extends JFrame {
     static final int width = 1000;
     static final int height = 800;
-    
+
     private JPanel mainPanel = new JPanel();
     private CardLayout m_cardLayout = new CardLayout();
 
@@ -48,8 +51,23 @@ public class CinemaGUI extends JFrame {
     private AdminPanel adminPanel = new AdminPanel(this, width, height);
 
     public static void main(String[] args) {
+
         @SuppressWarnings("unused")
         CinemaGUI cinemaGUI = new CinemaGUI();
+
+        String lookAndFeel[] = {
+                "javax.swing.plaf.metal.MetalLookAndFeel",
+                "javax.swing.plaf.nimbus.NimbusLookAndFeel",
+                "com.sun.java.swing.plaf.motif.MotifLookAndFeel",
+                "com.sun.java.swing.plaf.windows.WindowsLookAndFeel",
+                "com.sun.java.swing.plaf.windows.WindowsClassicLookAndFeel"
+        };
+
+        try {
+            UIManager.setLookAndFeel(lookAndFeel[3]);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     CinemaGUI() {
@@ -63,17 +81,17 @@ public class CinemaGUI extends JFrame {
         add(mainPanel);
 
         // tabbed pane 0 is the main menu panel
-        mainPanel.add("Ana Menü", mainMenuPanel);
-        mainPanel.add("Film Seç", ticketSellingPanel);
-        mainPanel.add("Film Değerlendir", movieRatingPanel);
-        mainPanel.add("Admin Girişi", adminPanel);
+        mainPanel.add("Main Menu", mainMenuPanel);
+        mainPanel.add("Select a Movie", ticketSellingPanel);
+        mainPanel.add("Rate a Movie", movieRatingPanel);
+        mainPanel.add("Admin Login", adminPanel);
 
         showMainMenu();
         setVisible(true);
     }
 
     public void showMainMenu() {
-        m_cardLayout.show(mainPanel, "Ana Menü");
+        m_cardLayout.show(mainPanel, "Main Menu");
     }
 
     private class MainMenuPanel extends JPanel {
@@ -88,25 +106,30 @@ public class CinemaGUI extends JFrame {
             int buttonY = (height - buttonHeight) / 2 - 200;
 
             // create 3 buttons
-            JButton button1 = new JButton("Film Seç");
+            JButton button1 = new JButton("Select a Movie");
             button1.setBounds(buttonX - (int) (1.5 * buttonWidth), buttonY, buttonWidth, buttonHeight);
             button1.addActionListener(e -> {
-                m_cardLayout.show(mainPanel, "Film Seç");
+                m_cardLayout.show(mainPanel, "Select a Movie");
                 ticketSellingPanel.onVisible();
             });
             add(button1);
 
-            JButton button2 = new JButton("Film Değerlendir");
+            JButton button2 = new JButton("Rate a Movie");
             button2.setBounds(buttonX, buttonY, buttonWidth, buttonHeight);
-            button2.addActionListener(e -> m_cardLayout.show(mainPanel, "Film Değerlendir"));
+            button2.addActionListener(e -> m_cardLayout.show(mainPanel, "Rate a Movie"));
             add(button2);
 
-            JButton button3 = new JButton("Admin Girişi");
+            JButton button3 = new JButton("Admin Login");
             button3.setBounds(buttonX + (int) (1.5 * buttonWidth), buttonY, buttonWidth, buttonHeight);
             button3.addActionListener(e -> {
                 String password = JOptionPane.showInputDialog(this, "Enter password:");
+
+                if (password == null) {
+                    return;
+                }
+
                 if (isValidPassword(password)) {
-                    m_cardLayout.show(mainPanel, "Admin Girişi");
+                    m_cardLayout.show(mainPanel, "Admin Login");
                     CinemaGUI.this.adminPanel.onVisible();
                 } else {
                     JOptionPane.showMessageDialog(this, "Invalid password!");
@@ -168,8 +191,8 @@ public class CinemaGUI extends JFrame {
             private Movie selectedMovie;
 
             private JPanel mainPanel = new JPanel();
-            private JScrollPane scrollPane = new JScrollPane(mainPanel); 
-            
+            private JScrollPane scrollPane = new JScrollPane(mainPanel);
+
             public ScreeningRoomManagementPanel() {
                 setLayout(new BorderLayout());
                 add(scrollPane, BorderLayout.CENTER);
@@ -178,26 +201,28 @@ public class CinemaGUI extends JFrame {
 
                 JComboBox<Movie> movieCombobox = new JComboBox<>();
                 movieCombobox.setRenderer(new DefaultListCellRenderer() {
-                
-                @Override
-                public Component getListCellRendererComponent(JList<?> list, Object value, int index, boolean isSelected, boolean cellHasFocus) {
-                    super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
-                    if (value instanceof Movie) {
-                        Movie movie = (Movie) value;
 
-                        String text = String.format("%-70s%-30s%-6s", movie.getName(), "rating: " + movie.getRating(), "duration: " + movie.getDuration());
-                        setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
-                        
-                        setText(text);
+                    @Override
+                    public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                            boolean isSelected, boolean cellHasFocus) {
+                        super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+                        if (value instanceof Movie) {
+                            Movie movie = (Movie) value;
+
+                            String text = String.format("%-70s%-30s%-6s", movie.getName(),
+                                    "rating: " + movie.getRating(), "duration: " + movie.getDuration());
+                            setFont(new Font(Font.MONOSPACED, Font.PLAIN, 12));
+
+                            setText(text);
+                        }
+                        return this;
                     }
-                    return this;
-                }
                 });
-                
+
                 List<Movie> movies = Movie.getAllMovies();
                 selectedMovie = movies.get(0);
 
-                for (Movie m: movies) {
+                for (Movie m : movies) {
                     movieCombobox.addItem(m);
                 }
 
@@ -224,71 +249,82 @@ public class CinemaGUI extends JFrame {
 
             private class DayMoviePanel extends JPanel {
                 public DayMoviePanel(ScreeningRoom screeningRoom) {
-    
+
                     setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
-                    
+
                     JPanel assignmentPanel = new JPanel();
                     assignmentPanel.setLayout(new BoxLayout(assignmentPanel, BoxLayout.X_AXIS));
                     add(assignmentPanel);
-    
+
                     JLabel nameLabel = new JLabel("Salon " + screeningRoom.getId());
-                    nameLabel.setToolTipText("Salon " + screeningRoom.getId() + " - " + screeningRoom.getSeatRowCount() + "x" + screeningRoom.getSeatColCount() + " koltuk");
+                    nameLabel.setToolTipText("Salon " + screeningRoom.getId() + " - " + screeningRoom.getSeatRowCount()
+                            + "x" + screeningRoom.getSeatColCount() + " koltuk");
                     assignmentPanel.add(nameLabel);
-    
+
                     List<Session> sessionList = null;
                     // get sessions for the screening room
                     List<FilterCondition> filterConditions = new ArrayList<>();
-                    filterConditions.add(new FilterCondition("screeningRoomId", screeningRoom.getId(), FilterCondition.Relation.EQUALS));
-                    filterConditions.add(new FilterCondition("date", LocalDate.now(), FilterCondition.Relation.GREATER_THAN_OR_EQUALS));
-                    filterConditions.add(new FilterCondition("date", LocalDate.now().plusDays(30), FilterCondition.Relation.LESS_THAN));
+                    filterConditions.add(new FilterCondition("screeningRoomId", screeningRoom.getId(),
+                            FilterCondition.Relation.EQUALS));
+                    filterConditions.add(new FilterCondition("date", LocalDate.now(),
+                            FilterCondition.Relation.GREATER_THAN_OR_EQUALS));
+                    filterConditions.add(new FilterCondition("date", LocalDate.now().plusDays(30),
+                            FilterCondition.Relation.LESS_THAN));
                     try {
-                        sessionList = DatabaseManager.getRowsFilteredAndSortedBy(Session.class, filterConditions, "date", false);
+                        sessionList = DatabaseManager.getRowsFilteredAndSortedBy(Session.class, filterConditions,
+                                "date", false);
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
-    
+
                     // get sessions for each day
                     Session sessionArray[] = new Session[30];
 
                     for (Session s : sessionList) {
-                        sessionArray[(int)(ChronoUnit.DAYS.between(LocalDate.now(), s.getDate()))] = s;
+                        sessionArray[(int) (ChronoUnit.DAYS.between(LocalDate.now(), s.getDate()))] = s;
                     }
-    
+
                     // get movie names for each session
                     Movie movieArray[] = new Movie[30];
                     for (int i = 0; i < 30; i++) {
                         if (sessionArray[i] != null) {
                             filterConditions = new ArrayList<>();
-                            filterConditions.add(new FilterCondition("id", sessionArray[i].getMovieId(), FilterCondition.Relation.EQUALS));
+                            filterConditions.add(new FilterCondition("id", sessionArray[i].getMovieId(),
+                                    FilterCondition.Relation.EQUALS));
                             try {
-                                movieArray[i] = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class, filterConditions, "id", true).get(0);
+                                movieArray[i] = DatabaseManager
+                                        .getRowsFilteredAndSortedBy(Movie.class, filterConditions, "id", true).get(0);
                             } catch (Exception e) {
                                 e.printStackTrace();
                             }
                         }
                     }
-    
+
                     // create buttons for each day
                     for (int i = 0; i < 30; i++) {
                         JButton button = new JButton();
-    
+
                         final int dayIndex = i;
-                        
-                        button.setText(LocalDate.now().plusDays(i).getMonthValue() + "/" + LocalDate.now().plusDays(i).getDayOfMonth());
+
+                        button.setText(LocalDate.now().plusDays(i).getMonthValue() + "/"
+                                + LocalDate.now().plusDays(i).getDayOfMonth());
                         Movie movie = movieArray[dayIndex];
                         final String movieName = movie == null ? "Boş" : movie.getName();
                         button.addActionListener(new ActionListener() {
                             public void actionPerformed(ActionEvent e) {
-                                if (screeningRoom.addMovieToDate(LocalDate.now().plusDays(dayIndex), selectedMovie.getId()))
-                                    System.out.println("added movie " + selectedMovie.getId() + " to date " + LocalDate.now().plusDays(dayIndex));
+                                if (screeningRoom.addMovieToDate(LocalDate.now().plusDays(dayIndex),
+                                        selectedMovie.getId()))
+                                    System.out.println("added movie " + selectedMovie.getId() + " to date "
+                                            + LocalDate.now().plusDays(dayIndex));
                                 else
-                                    System.out.println("unable to add movie " + selectedMovie.getId() + " to date " + LocalDate.now().plusDays(dayIndex));
+                                    System.out.println("unable to add movie " + selectedMovie.getId() + " to date "
+                                            + LocalDate.now().plusDays(dayIndex));
                                 onVisible();
                             }
                         });
-    
+
                         button.setToolTipText(movieName);
-    
+
                         assignmentPanel.add(button);
                     }
                 }
