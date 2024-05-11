@@ -1,4 +1,4 @@
-package gui;
+package gui.mainPanels;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
@@ -61,7 +61,7 @@ public class MovieSelectionPanel extends JPanel {
      * @param height        The height of the window.
      * @param unitIncrement The scroll speed of the window.
      */
-    MovieSelectionPanel(TicketSellingPanel parent) {
+    public MovieSelectionPanel(TicketSellingPanel parent) {
         this.parent = parent;
         setLayout(new BorderLayout());
 
