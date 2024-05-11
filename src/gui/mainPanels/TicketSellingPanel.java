@@ -361,20 +361,23 @@ public class TicketSellingPanel extends JPanel {
 
             payButton.addActionListener(e -> {
 
-                checkPaymentInfo(nameField.getText(), surnameField.getText(), cardNumberField.getText(),
-                        cvvField.getText(), (java.util.Date) expiryDateSpinner.getValue());
+                if (false == checkPaymentInfo(nameField.getText(), surnameField.getText(), cardNumberField.getText(),
+                        cvvField.getText(), (java.util.Date) expiryDateSpinner.getValue())) {
+                    return;
+                }
 
                 Ticket ticket = SeatAvailability.bookSeatList(selectedSeats);
 
                 if (ticket == null) {
-                    System.out.println("Failed to book seats");
+                    JOptionPane.showMessageDialog(this, "Failed to book the seats.");
                 } else {
-                    System.out.println("Seats booked successfully");
+                    JOptionPane.showMessageDialog(this, "Payment successful. Ticket number: " + ticket.getId());
                     selectedSeats.clear();
                 }
             });
         }
 
+        // check if the payment information is valid temorarily
         private boolean checkPaymentInfo(String name, String surname, String cardNumber, String cvv,
                 java.util.Date expiryDate) {
             if (name.equals("Ad") || surname.equals("Soyad") || cardNumber.equals("Kart Numarası")
@@ -395,6 +398,20 @@ public class TicketSellingPanel extends JPanel {
 
             if (expiryDate.before(new java.util.Date())) {
                 JOptionPane.showMessageDialog(this, "Card has expired.");
+                return false;
+            }
+            
+            try {
+                int cardNumberInt = Integer.parseInt(cardNumber);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "Card number must be a valid integer.");
+                return false;
+            }
+
+            try {
+                int cvvInt = Integer.parseInt(cvv);
+            } catch (NumberFormatException e) {
+                JOptionPane.showMessageDialog(this, "CVV must be a valid integer.");
                 return false;
             }
 
