@@ -225,18 +225,15 @@ public class DatabaseManager {
 		Field[] fields = clazz.getDeclaredFields();
 		List<Object> values = new ArrayList<>();
 	
-		int i = 1;
-		int idIndex = 0;
+		int idIndex = 1;
 		// Add the column names and values to the query
 		for (Field field : fields) {
 			if (!DatabaseAnnotationUtils.isPrimaryKey(field) && field.getAnnotation(ColumnName.class) != null) {
 				String columnName = DatabaseAnnotationUtils.getColumnName(field);
 				values.add(DatabaseAnnotationUtils.getFieldValue(field, object));
 				queryBuilder.append(columnName).append(" = ?, ");
-			} else if (DatabaseAnnotationUtils.isPrimaryKey(field)) {
-				idIndex = i;
+				idIndex++;
 			}
-			i++;
 		}
 	
 		// Remove the last comma and space from the query and add the WHERE clause
