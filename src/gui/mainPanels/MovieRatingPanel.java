@@ -5,15 +5,22 @@ import javax.swing.JTextField;
 import javax.swing.border.EmptyBorder;
 
 import cinema.Movie;
+import cinema.SeatAvailability;
+import cinema.Session;
 import cinema.Ticket;
 import database.DatabaseManager;
+import database.FilterCondition;
+import database.FilterCondition.Relation;
 import gui.CinemaGUI;
 
 import javax.swing.JButton;
+import javax.swing.JOptionPane;
+
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusAdapter;
 import java.awt.event.FocusEvent;
+import java.util.List;
 import java.awt.Color;
 import javax.swing.BoxLayout;
 import javax.swing.Box;
@@ -128,23 +135,38 @@ public class MovieRatingPanel extends JPanel {
                 String ticketNumber = ticketNumberField.getText();
                 try {
                     int ticketId = Integer.parseInt(ticketNumber);
-                    Ticket ticket = DatabaseManager.getRowById(Ticket.class, ticketId);
+                    Ticket ticket = DatabaseManager.getRowsFilteredAndSortedBy(Ticket.class, List.of(
+                            new FilterCondition("code", ticketId, Relation.EQUALS)), ticketNumber, false).get(0);
 
+                    // check if any ticket is found
                     if (ticket == null) {
-                        warningField.setText("Ticket not found!");
+                        JOptionPane.showMessageDialog(parent, "Ticket not found!", "Error", JOptionPane.ERROR_MESSAGE);
+                    } else {
+                        // if not found,
+                        if (ticket.isPaid() == false) {
+                            JOptionPane.showMessageDialog(parent, "Ticket is not paid or already rated!", "Error",
+                                    JOptionPane.ERROR_MESSAGE);
+                        }
+
+                        if (ticket.isRated() == true) {
+                            JOptionPane.showMessageDialog(parent, "Ticket is already rated!", "Error",
+                                    JOptionPane.ERROR_MESSAGE);
+                        }
                     }
 
-                    if (ticket.isPaid() == false) {
-                        warningField.setText("Ticket is not paid!");
+                    // add rating to the database
+                    List<SeatAvailability> seatAvailabilities = DatabaseManager
+                            .getRowsFilteredAndSortedBy(SeatAvailability.class, List.of(
+                                    new FilterCondition("ticket_id", ticket.getId(), Relation.EQUALS)), "id", false);
+                    for (SeatAvailability seatAvailability : seatAvailabilities) {
+                        int sessionID = seatAvailability.getSessionId();
+                        Session session = DatabaseManager.getRowById(Session.class, sessionID);
+                        Movie movie = DatabaseManager.getRowById(Movie.class, session.getMovieId());
+                        Movie.addRating(movie.getId(), rating, 1);
                     }
 
-                    if (ticket.isRated() == true) {
-                        warningField.setText("Rating already submitted!");
-                    }
-
-                    // TODO add rating to the database
                     // TODO update the ticket to be rated
-                    
+
                     parent.showMainMenu();
                 } catch (NumberFormatException ex) {
                     warningField.setText("Invalid ticket number!");

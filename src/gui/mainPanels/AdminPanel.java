@@ -21,6 +21,7 @@ import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JLabel;
 import javax.swing.JList;
@@ -31,6 +32,8 @@ import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.JToolBar;
 import javax.swing.event.TableColumnModelEvent;
+import javax.swing.event.TableModelEvent;
+import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableColumnModel;
@@ -235,38 +238,96 @@ public class AdminPanel extends JPanel {
     private class MovieManagementPanel extends JPanel {
         List<Movie> movieList = Movie.getAllMovies();
         JTable movieTable = new JTable(new MovieTableModel(movieList));
+        private boolean editMode = false;
+        Movie selectedMovie = null;
+        JLabel label = new JLabel("selected: None");
 
         public MovieManagementPanel() {
             setLayout(new BorderLayout());
 
-            add(movieTable, BorderLayout.CENTER);
+            JPanel northPanel = new JPanel(new BorderLayout());
+            JScrollPane scrollPane = new JScrollPane(movieTable);
+            JPanel southPanel = new JPanel(new BorderLayout());
+
+            // northPanel components
+            JCheckBox checkBox = new JCheckBox("edit");
+
+            northPanel.add(checkBox, BorderLayout.EAST);
+            northPanel.add(label, BorderLayout.WEST);
+
+            // southPanel components
+            JButton addButton = new JButton("Add");
+            JButton removeButton = new JButton("Remove");
+            JButton updateButton = new JButton("Update");
+
+            southPanel.add(addButton, BorderLayout.WEST);
+            southPanel.add(removeButton, BorderLayout.CENTER);
+            southPanel.add(updateButton, BorderLayout.EAST);
+
+            // add main components
+            add(northPanel, BorderLayout.NORTH);
+            add(scrollPane, BorderLayout.CENTER);
+
             updateMoviePanels();
+
+            checkBox.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    if (checkBox.isSelected()) {
+                        editMode = true;
+                    } else {
+                        editMode = false;
+                    }
+                }
+            });
 
             this.addFocusListener(new FocusListener() {
                 public void focusGained(FocusEvent e) {
-                    updateMoviePanels();
+                    // updateMoviePanels();
                 }
 
                 public void focusLost(FocusEvent e) {
                 }
             });
+
+            addButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    // TODO: add movie
+                }
+            });
+        }
+
+        public void updateMovieList() {
+            movieList = Movie.getAllMovies();
         }
 
         public void updateMoviePanels() {
-            movieList = Movie.getAllMovies();
-
-            movieTable = new JTable(new MovieTableModel(movieList));
+            movieTable.setModel(new MovieTableModel(movieList));
 
             for (int i = 0; i < movieTable.getColumnCount(); i++) {
                 movieTable.getColumnModel().getColumn(i).setPreferredWidth(200);
-                movieTable.getColumnModel().getColumn(i).setHeaderValue(movieTable.getModel().getColumnName(i));;
+                movieTable.getColumnModel().getColumn(i).setHeaderValue(movieTable.getModel().getColumnName(i));
             }
 
             movieTable.addMouseListener(new MouseAdapter() {
                 public void mouseClicked(MouseEvent e) {
                     int row = movieTable.getSelectedRow();
                     if (row >= 0 && row < movieList.size()) {
-                        System.out.println("Selected movie: " + movieList.get(row).getName());
+                        // Handle row selection
+                    }
+                }
+            });
+
+            // for (int i = 0; i < movieTable.getColumnCount(); i++) {
+            // movieTable.getColumnModel().getColumn(i).setPreferredWidth(200);
+            // movieTable.getColumnModel().getColumn(i).setHeaderValue(movieTable.getModel().getColumnName(i));
+            // }
+
+            movieTable.addMouseListener(new MouseAdapter() {
+                public void mouseClicked(MouseEvent e) {
+                    int row = movieTable.getSelectedRow();
+                    if (row >= 0 && row < movieList.size()) {
+                        selectedMovie = movieList.get(row);
+                        label.setText("selected: " + selectedMovie.getName());
                     }
                 }
             });
@@ -274,11 +335,17 @@ public class AdminPanel extends JPanel {
 
         private class MovieTableModel extends AbstractTableModel {
             private List<Movie> movieList;
-            private String[] columnNames = {"Name", "Rating", "Duration"};
+            private String[] columnNames = { "Name", "Rating", "Duration" };
+            private Boolean[] editables = { true, true, true };
 
             public MovieTableModel(List<Movie> movieList) {
                 super();
                 this.movieList = movieList;
+
+                addTableModelListener(new TableModelListener() {
+                    public void tableChanged(TableModelEvent e) {
+                    }
+                });
             }
 
             public Object getValueAt(int rowIndex, int columnIndex) {
@@ -298,17 +365,21 @@ public class AdminPanel extends JPanel {
             public int getColumnCount() {
                 return columnNames.length;
             }
-      
+
             public int getRowCount() {
                 return movieList.size();
             }
-      
+
             public String getColumnName(int col) {
                 return columnNames[col];
             }
-      
+
             public Class<?> getColumnClass(int c) {
                 return getValueAt(0, c).getClass();
+            }
+
+            public boolean isCellEditable(int row, int col) {
+                return editMode && editables[col];
             }
         }
     }

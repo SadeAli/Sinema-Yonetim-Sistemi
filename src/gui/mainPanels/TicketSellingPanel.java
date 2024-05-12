@@ -149,6 +149,8 @@ public class TicketSellingPanel extends JPanel {
 
     private class SeatSelectionPanel extends JPanel {
 
+        Ticket ticket = null;
+
         enum SeatState {
             AVAILABLE, SELECTED, UNAVAILABLE
         }
@@ -225,6 +227,15 @@ public class TicketSellingPanel extends JPanel {
                     if (selectedSeats.isEmpty()) {
                         JOptionPane.showMessageDialog(this, "Please select at least one seat");
                         return;
+                    }
+
+                    ticket = SeatAvailability.bookSeatList(selectedSeats);
+
+                    if (ticket == null) {
+                        JOptionPane.showMessageDialog(this, "Failed to book the seats.");
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Payment successful. Ticket number: " + ticket.getCode());
+                        selectedSeats.clear();
                     }
 
                     cardLayout.show(this.getParent().getParent(), "Payment");
@@ -361,20 +372,14 @@ public class TicketSellingPanel extends JPanel {
 
             payButton.addActionListener(e -> {
 
-                checkPaymentInfo(nameField.getText(), surnameField.getText(), cardNumberField.getText(),
-                        cvvField.getText(), (java.util.Date) expiryDateSpinner.getValue());
-
-                Ticket ticket = SeatAvailability.bookSeatList(selectedSeats);
-
-                if (ticket == null) {
-                    System.out.println("Failed to book seats");
-                } else {
-                    System.out.println("Seats booked successfully");
-                    selectedSeats.clear();
+                if (false == checkPaymentInfo(nameField.getText(), surnameField.getText(), cardNumberField.getText(),
+                        cvvField.getText(), (java.util.Date) expiryDateSpinner.getValue())) {
+                    return;
                 }
             });
         }
 
+        // check if the payment information is valid temorarily
         private boolean checkPaymentInfo(String name, String surname, String cardNumber, String cvv,
                 java.util.Date expiryDate) {
             if (name.equals("Ad") || surname.equals("Soyad") || cardNumber.equals("Kart Numarası")
@@ -397,7 +402,7 @@ public class TicketSellingPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Card has expired.");
                 return false;
             }
-
+            
             return true;
         }
     }

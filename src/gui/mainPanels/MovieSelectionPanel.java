@@ -2,10 +2,12 @@ package gui.mainPanels;
 
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
+import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JList;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
@@ -13,6 +15,7 @@ import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
 import javax.swing.JSpinner.DateEditor;
 
+import cinema.Genre;
 import cinema.Movie;
 import cinema.Session;
 
@@ -22,6 +25,7 @@ import database.FilterCondition.Relation;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
@@ -127,7 +131,9 @@ public class MovieSelectionPanel extends JPanel {
 
     public void applyFilter() {
         List<Session> sessions = new ArrayList<>();
-        
+
+        // TODO add genre filter
+
         try {
             // get movies
             movieList = DatabaseManager.getRowsFilteredAndSortedBy(
@@ -188,6 +194,12 @@ public class MovieSelectionPanel extends JPanel {
         }
 
         private class FilterPopup extends JDialog {
+
+            List<Genre> selectedGenreList = new ArrayList<>();
+            List<Genre> genreSelectionList = Genre.getAllGenres();
+            GenreBox genreBox;
+            GenreList genreList;
+
             FilterPopup() {
                 setSize(300, 300);
                 setVisible(false);
@@ -201,6 +213,8 @@ public class MovieSelectionPanel extends JPanel {
                 JSpinner dateSpinner = new JSpinner(dateModel);
                 DateEditor editor = new JSpinner.DateEditor(dateSpinner, "dd/MM/yy");
                 JPanel buttonPanel = new JPanel();
+                genreList = new GenreList();
+                genreBox = new GenreBox();
 
                 JComboBox<SortOption> sortComboBox = new JComboBox<>(new SortOption[] {
                         new SortOption("Sort by Name", "name", true),
@@ -228,6 +242,8 @@ public class MovieSelectionPanel extends JPanel {
                 // add components to the dialog
                 add(dateSpinner);
                 add(searchField);
+                add(genreBox);
+                add(new JScrollPane(genreList));
                 add(sortComboBox);
                 add(buttonPanel);
 
@@ -254,6 +270,75 @@ public class MovieSelectionPanel extends JPanel {
 
                     setVisible(false);
                 });
+            }
+
+            private class GenreList extends JList<Genre> {
+                public GenreList() {
+                    super(selectedGenreList.toArray(new Genre[0]));
+
+                    setCellRenderer(new DefaultListCellRenderer() {
+                        @Override
+                        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                boolean isSelected, boolean cellHasFocus) {
+                            Component renderer = super.getListCellRendererComponent(list, value, index, isSelected,
+                                    cellHasFocus);
+                            if (renderer instanceof JLabel && value instanceof Genre) {
+                                ((JLabel) renderer).setText(((Genre) value).getName());
+                            }
+                            return renderer;
+                        }
+                    });
+
+                    addMouseListener(new MouseAdapter() {
+                        @Override
+                        public void mouseClicked(MouseEvent e) {
+                            int index = locationToIndex(e.getPoint());
+                            Genre selectedGenre = getModel().getElementAt(index);
+                            if (selectedGenreList.contains(selectedGenre)) {
+                                selectedGenreList.remove(selectedGenre);
+                                genreSelectionList.add(selectedGenre);
+
+                                setListData(selectedGenreList.toArray(new Genre[0]));
+                                genreBox.addItem(selectedGenre);
+                            }
+                        }
+                    });
+                }
+
+                @Override
+                public Dimension getPreferredScrollableViewportSize() {
+                    return new Dimension(300, 100);
+                }
+            }
+            
+            private class GenreBox extends JComboBox<Genre> {
+                public GenreBox() {
+                    super(Genre.getAllGenres().toArray(new Genre[0]));
+
+                    setRenderer(new DefaultListCellRenderer() {
+                        @Override
+                        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                boolean isSelected, boolean cellHasFocus) {
+                            Component renderer = super.getListCellRendererComponent(list, value, index, isSelected,
+                                    cellHasFocus);
+                            if (renderer instanceof JLabel && value instanceof Genre) {
+                                ((JLabel) renderer).setText(((Genre) value).getName());
+                            }
+                            return renderer;
+                        }
+                    });
+
+                    addActionListener(e -> {
+                        Genre selectedGenre = (Genre) getSelectedItem();
+                        if (selectedGenre != null) {
+                            selectedGenreList.add(selectedGenre);
+                            genreSelectionList.remove(selectedGenre);
+
+                            genreList.setListData(selectedGenreList.toArray(new Genre[0]));
+                            removeItem(selectedGenre);
+                        }
+                    });
+                }
             }
 
             private class SortOption {
