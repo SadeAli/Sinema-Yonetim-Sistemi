@@ -28,6 +28,7 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -107,11 +108,11 @@ public class MovieSelectionPanel extends JPanel {
 
             // actions
             addMouseListener(new MouseAdapter() {
-                @Override
+            @Override
                 public void mouseClicked(MouseEvent e) {
                     parent.selectMovie(movie, dateQuery);
-                }
-            });
+            }
+        });
         }
     }
 
@@ -137,11 +138,14 @@ public class MovieSelectionPanel extends JPanel {
 
         try {
             for (Genre genre : selectedGenreList) {
-                MovieGenre movieGenre = DatabaseManager
+                List<MovieGenre> tmp = DatabaseManager
                         .getRowsFilteredAndSortedBy(MovieGenre.class,
-                                List.of(new FilterCondition("genreId", genre.getId(), Relation.EQUALS)), "id", true)
-                        .get(0);
-                movieGenres.add(movieGenre);
+                                List.of(new FilterCondition("genreId", genre.getId(), Relation.EQUALS)), "id", true);
+                                
+                if (!tmp.isEmpty()) {
+                    movieGenres.add(tmp.get(0));
+                }
+
             }
 
             // get movies
