@@ -381,7 +381,7 @@ public class DatabaseManager {
 		return false;
 	}
 
-	public static <T> int count (Class<T> clazz, List<FilterCondition> filters) throws NoSuchFieldException, Exception {
+	public static <T> int count(Class<T> clazz, List<FilterCondition> filters) throws NoSuchFieldException, Exception {
 		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 		StringBuilder query = new StringBuilder("SELECT COUNT(*) FROM " + tableName);
 
@@ -411,6 +411,21 @@ public class DatabaseManager {
 		} catch (Exception e) {
 			System.err.println("Unable to count rows: " + e.getMessage());
 			throw e;
+		}
+	}
+
+	public static <T> boolean deleteRow(Class<T> clazz, int id) throws SQLException {
+		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
+		String query = "DELETE FROM " + tableName + " WHERE id = ?";
+
+		try (Connection connection = getConnection();
+			 PreparedStatement stmt = connection.prepareStatement(query)) {
+			stmt.setInt(1, id);
+			int affectedRows = stmt.executeUpdate();
+			return affectedRows > 0;
+		} catch (SQLException e) {
+			System.err.println("Unable to delete row: " + e.getMessage());
+			return false;
 		}
 	}
 }
