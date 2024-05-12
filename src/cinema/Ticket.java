@@ -38,6 +38,7 @@ public class Ticket {
 		this.isRated = isRated;
 		this.isPaid = isPaid;
 		this.purchaseDate = purchaseDate;
+		this.price = price;
 	}
 
 	// Getters
