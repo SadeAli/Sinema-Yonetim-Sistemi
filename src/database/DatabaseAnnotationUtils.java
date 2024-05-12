@@ -12,7 +12,11 @@ import java.time.format.DateTimeFormatter;
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DatabaseAnnotationUtils {
+public final class DatabaseAnnotationUtils {
+	
+	private DatabaseAnnotationUtils() {
+		throw new AssertionError("Cannot instantiate DatabaseAnnotationUtils");
+	}
 
     public static String getTableName(Class<?> clazz) {
         TableName tableNameAnnotation = clazz.getAnnotation(TableName.class);
