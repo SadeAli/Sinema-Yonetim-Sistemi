@@ -62,6 +62,16 @@ public final class DatabaseAnnotationUtils {
 		throw new IllegalArgumentException("Class " + clazz.getName() + " does not have a field with the PrimaryKey annotation");
 	}
 
+	public static int getPrimaryKeyValue(Object object) {
+		Class<?> clazz= object.getClass();
+		for (Field field : clazz.getDeclaredFields()) {
+			if (field.getAnnotation(PrimaryKey.class) != null) {
+				return (int) getFieldValue(field, object);
+			}
+		}
+		throw new IllegalArgumentException("Object " + object.getClass().getName() + " does not have a field with the PrimaryKey annotation");
+	}
+
 	public static <T> T createNewInstance(Class<T> clazz) {
 		T object = null;
 		try {

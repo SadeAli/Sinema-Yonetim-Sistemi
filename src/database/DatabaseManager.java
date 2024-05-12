@@ -1,21 +1,14 @@
 package database;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class DatabaseManager {
 	public static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine.db";
@@ -232,13 +225,18 @@ public class DatabaseManager {
 		Field[] fields = clazz.getDeclaredFields();
 		List<Object> values = new ArrayList<>();
 	
+		int i = 1;
+		int idIndex = 0;
 		// Add the column names and values to the query
 		for (Field field : fields) {
 			if (!DatabaseAnnotationUtils.isPrimaryKey(field) && field.getAnnotation(ColumnName.class) != null) {
 				String columnName = DatabaseAnnotationUtils.getColumnName(field);
 				values.add(DatabaseAnnotationUtils.getFieldValue(field, object));
 				queryBuilder.append(columnName).append(" = ?, ");
+			} else if (DatabaseAnnotationUtils.isPrimaryKey(field)) {
+				idIndex = i;
 			}
+			i++;
 		}
 	
 		// Remove the last comma and space from the query and add the WHERE clause
@@ -257,6 +255,8 @@ public class DatabaseManager {
 				object,
 				statement
 			);
+
+			statement.setInt(idIndex, DatabaseAnnotationUtils.getPrimaryKeyValue(object));
 	
 			int affectedRows = statement.executeUpdate();
 	
