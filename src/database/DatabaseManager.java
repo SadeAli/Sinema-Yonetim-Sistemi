@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 public class DatabaseManager {
-	public static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine_fake.db";
+	public static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine.db";
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(SQLITE_JDBC_URL);
