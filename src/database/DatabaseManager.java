@@ -220,6 +220,53 @@ public class DatabaseManager {
 		}
 	}
 
+	public static boolean updateRow(Object object) throws SQLException, IllegalArgumentException, IllegalAccessException {
+		Class<?> clazz = object.getClass();
+		// Get the table name from the TableName annotation
+		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
+	
+		// Build the SQL query
+		StringBuilder queryBuilder = new StringBuilder("UPDATE " + tableName + " SET ");
+	
+		// Get all fields in the class
+		Field[] fields = clazz.getDeclaredFields();
+		List<Object> values = new ArrayList<>();
+	
+		// Add the column names and values to the query
+		for (Field field : fields) {
+			if (!DatabaseAnnotationUtils.isPrimaryKey(field) && field.getAnnotation(ColumnName.class) != null) {
+				String columnName = DatabaseAnnotationUtils.getColumnName(field);
+				values.add(DatabaseAnnotationUtils.getFieldValue(field, object));
+				queryBuilder.append(columnName).append(" = ?, ");
+			}
+		}
+	
+		// Remove the last comma and space from the query and add the WHERE clause
+		queryBuilder.delete(queryBuilder.length() - 2, queryBuilder.length());
+		queryBuilder.append(" WHERE id = ?");
+	
+		// Build the final query string
+		String query = queryBuilder.toString();
+	
+		// Execute the query
+		try (Connection connection = getConnection();
+			 PreparedStatement statement = connection.prepareStatement(query)) {
+		
+			DatabaseAnnotationUtils.setPreparedStatementValueSet(
+				DatabaseAnnotationUtils.getColumnNamesAndFields(clazz),
+				object,
+				statement
+			);
+	
+			int affectedRows = statement.executeUpdate();
+	
+			return affectedRows > 0;
+		} catch (SQLException e) {
+			System.err.println("Unable to update row: " + e.getMessage());
+			return false;
+		}
+	}
+
 	public static <T> List<T> getClassWithQuery(Class<T> clazz, String addQuery) throws SQLException {
 		StringBuilder queryBuilder = new StringBuilder("SELECT DISTINCT ");
 		

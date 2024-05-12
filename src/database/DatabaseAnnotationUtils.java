@@ -48,6 +48,16 @@ public class DatabaseAnnotationUtils {
 		return columnFieldMap;
 	}
 
+	public static String getPrimaryKey(Class<?> clazz) {
+		Field[] fields = clazz.getDeclaredFields();
+		for (Field field : fields) {
+			if (field.getAnnotation(PrimaryKey.class) != null) {
+				return getColumnName(field);
+			}
+		}
+		throw new IllegalArgumentException("Class " + clazz.getName() + " does not have a field with the PrimaryKey annotation");
+	}
+
 	public static <T> T createNewInstance(Class<T> clazz) {
 		T object = null;
 		try {
@@ -184,5 +194,24 @@ public class DatabaseAnnotationUtils {
 		valuesBuilder.delete(valuesBuilder.length() - 2, valuesBuilder.length());
 
 		return queryBuilder.append(valuesBuilder).append(")").toString();
+	}
+
+	public static String getUpdateQuery(Class<?> clazz) {
+		StringBuilder queryBuilder = new StringBuilder("UPDATE " + getTableName(clazz) + " SET ");
+
+		Map<String, Field> columnFieldMap = getColumnNamesAndFields(clazz);
+
+		for (String columnName : columnFieldMap.keySet()) {
+			if (!isPrimaryKey(columnFieldMap.get(columnName))) {
+				queryBuilder.append(columnName).append(" = ?, ");
+			}
+		}
+
+		// Remove the last comma and space
+		queryBuilder.delete(queryBuilder.length() - 2, queryBuilder.length());
+
+		queryBuilder.append(" WHERE ").append(getPrimaryKey(clazz)).append(" = ?");
+
+		return queryBuilder.toString();
 	}
 }

@@ -114,15 +114,17 @@ public class Movie {
 		String sqlGetSeatCount = "SELECT COUNT(*)"
 			+ " FROM seat_availability"
 			+ " JOIN ticket ON seat_availability.ticket_id = ticket.id"
-			+ " WHERE ticket.id = ?";
+			+ " WHERE ticket.code = ?";
 
 		String sqlUpdateMovie = "UPDATE movie SET rating = ?, rating_count = ? WHERE id = ?";
 		String sqlUpdateTicket = "UPDATE ticket SET is_rated = 1 WHERE code = ?";
 
 		int seatCount = 0;
 		
+		// take difference
 		if (newRate > RATING_UPPER_LIMIT || newRate < RATING_LOWER_LIMIT) {
 			// Invalid rating value, must be between 1 and 5 (inclusive)
+			System.err.println("Invalid rating value, must be between 1 and 5 (inclusive)");
             return false;
         }
 
@@ -166,7 +168,7 @@ public class Movie {
 				int currentRatingCount = rs.getInt("rating_count");
 
 				int newRatingCount = currentRatingCount + seatCount;
-				float newRating = currentRating + (newRate - currentRating) / ((float) currentRatingCount / seatCount);
+				float newRating = currentRating + (newRate - currentRating) / ((float) newRatingCount / seatCount);
 
 				psUpdateMovie.setFloat(1, newRating);
 				psUpdateMovie.setInt(2, newRatingCount);
@@ -192,6 +194,7 @@ public class Movie {
 					ex.printStackTrace();
 				}
 			}
+			System.err.println("Error adding rating: " + e.getMessage());
 			return false;
 		} finally {
 			if (psGetMovie != null) {
