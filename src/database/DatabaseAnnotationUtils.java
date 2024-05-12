@@ -158,6 +158,8 @@ public final class DatabaseAnnotationUtils {
 			stmt.setBoolean(index, (Boolean) value);
 		} else if (value instanceof LocalTime) {
 			stmt.setString(index, ((LocalTime) value).format(DateTimeFormatter.ofPattern("HH:mm:ss"))); 
+		} else if (value instanceof String) {
+			stmt.setString(index, (String) value);
 		} else {
 			System.err.println("Setting value with setObject for type: " + value.getClass().getName());
 			stmt.setObject(index, value);
