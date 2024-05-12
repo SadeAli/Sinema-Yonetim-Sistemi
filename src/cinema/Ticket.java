@@ -27,11 +27,14 @@ public class Ticket {
 
 	@ColumnName("code")
 	private int code;
+
+	@ColumnName("price")
+	private double price;
 	// Constructors
 
 	private Ticket() {}
 
-	public Ticket(boolean isRated, boolean isPaid, LocalDate purchaseDate) {
+	public Ticket(boolean isRated, boolean isPaid, LocalDate purchaseDate, double price) {
 		this.isRated = isRated;
 		this.isPaid = isPaid;
 		this.purchaseDate = purchaseDate;
@@ -57,6 +60,10 @@ public class Ticket {
 
 	public int getCode() {
 		return code;
+	}
+
+	public double getPrice() {
+		return price;
 	}
 
 	// Setters

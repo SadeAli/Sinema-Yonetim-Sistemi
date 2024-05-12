@@ -79,7 +79,7 @@ public class SeatAvailability {
 		}
 	}
 
-	public static Ticket bookSeatList (List<SeatAvailability> seatAvList) {
+	public static Ticket bookSeatList (List<SeatAvailability> seatAvList, double price) {
 		String sql = "UPDATE seat_availability SET is_available = 0, ticket_id = ? WHERE id = ?";
 		String sqlTicket = DatabaseAnnotationUtils.getInsertQuery(Ticket.class);
 		String sqlTicketCode = "UPDATE ticket SET code = ? WHERE id = ?";
@@ -106,7 +106,7 @@ public class SeatAvailability {
 			conn.setAutoCommit(false);
 
 			// Create a ticket
-			Ticket ticket = new Ticket(false, false, LocalDate.now());
+			Ticket ticket = new Ticket(false, false, LocalDate.now(), price);
 
 			// Set the values of the ticket
 			DatabaseAnnotationUtils.setPreparedStatementValueSet(
