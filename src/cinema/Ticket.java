@@ -27,11 +27,14 @@ public class Ticket {
 
 	@ColumnName("code")
 	private int code;
+
+	@ColumnName("price")
+	private double price;
 	// Constructors
 
 	private Ticket() {}
 
-	public Ticket(boolean isRated, boolean isPaid, LocalDate purchaseDate) {
+	public Ticket(boolean isRated, boolean isPaid, LocalDate purchaseDate, double price) {
 		this.isRated = isRated;
 		this.isPaid = isPaid;
 		this.purchaseDate = purchaseDate;
@@ -57,6 +60,10 @@ public class Ticket {
 
 	public int getCode() {
 		return code;
+	}
+
+	public double getPrice() {
+		return price;
 	}
 
 	// Setters
@@ -158,6 +165,42 @@ public class Ticket {
 				} catch (SQLException e) {
 					System.err.println("Unable to set the autoCommit to true: " + e.getMessage());
 				}
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					System.err.println("Unable to close the connection: " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		}
+	}
+
+	public static boolean verifyPurchase(int ticketId) {
+		String sql = "UPDATE ticket SET is_paid = 1 WHERE id = ?";
+
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			ps = conn.prepareStatement(sql);
+
+			ps.setInt(1, ticketId);
+			ps.executeUpdate();
+
+			return true;
+
+		} catch (Exception e) {
+			System.err.println("Unable to verify purchase: " + e.getMessage());
+			return false;
+		} finally {
+			if (ps != null) {
+				try {
+					ps.close();
+				} catch (SQLException e) {
+					System.err.println("Unable to close the statement: " + e.getMessage());
+				}
+			}
+			if (conn != null) {
 				try {
 					conn.close();
 				} catch (SQLException e) {

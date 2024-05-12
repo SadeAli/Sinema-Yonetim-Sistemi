@@ -375,6 +375,7 @@ public class TicketSellingPanel extends JPanel {
                 if (false == checkPaymentInfo(nameField.getText(), surnameField.getText(), cardNumberField.getText(),
                         cvvField.getText(), (java.util.Date) expiryDateSpinner.getValue())) {
                     return;
+
                 }
             });
         }
