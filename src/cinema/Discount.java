@@ -48,7 +48,7 @@ public class Discount {
 		this.id = id;
 	}
 
-	public static List<Discount> getAllMovies() {
+	public static List<Discount> getAllDiscounts() {
 		try {
 			return DatabaseManager.getAllRows(Discount.class);
 		} catch (Exception e) {
