@@ -148,6 +148,9 @@ public class Movie {
 			
 			if (rs.next()) {
 				seatCount = rs.getInt(1);
+				if (seatCount == 0) {
+					throw new SQLException("No seats found for ticket code " + ticketCode);
+				}
 			} else {
 				throw new SQLException("Movie not found");
 			}
@@ -165,7 +168,6 @@ public class Movie {
 				int newRatingCount = currentRatingCount + seatCount;
 				float newRating = currentRating + (newRate - currentRating) / ((float) currentRatingCount / seatCount);
 
-				// Update the rating and rating count
 				psUpdateMovie.setFloat(1, newRating);
 				psUpdateMovie.setInt(2, newRatingCount);
 				psUpdateMovie.setInt(3, movieId);
