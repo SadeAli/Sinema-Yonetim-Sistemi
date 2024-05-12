@@ -100,9 +100,26 @@ public class Movie {
 	}
 	
     // Method to add a rating to the movie
-    public static boolean addRating(int id, int newRate, int ratingCount) {
-		String sqlGet = "SELECT rating, rating_count FROM movie WHERE id = ?";
-		String sqlUpdate = "UPDATE movie SET rating = ?, rating_count = ? WHERE id = ?";
+    public static boolean addRating(int ticketCode, float newRate) {
+		String sqlGetMovie = "SELECT movie.id, movie.rating, movie.rating_count"
+			+ " FROM movie"
+			+ " JOIN session ON movie.id = session.movie_id"
+			+ " JOIN seat_availability ON session.id = seat_availability.session_id"
+			+ " JOIN ticket ON seat_availability.ticket_id = ticket.id"
+			+ " WHERE ticket.code = ?"
+			+ " AND ticket.is_paid = 1"
+			+ " AND ticket.is_rated = 0"
+			+ " LIMIT 1";
+		
+		String sqlGetSeatCount = "SELECT COUNT(*)"
+			+ " FROM seat_availability"
+			+ " JOIN ticket ON seat_availability.ticket_id = ticket.id"
+			+ " WHERE ticket.id = ?";
+
+		String sqlUpdateMovie = "UPDATE movie SET rating = ?, rating_count = ? WHERE id = ?";
+		String sqlUpdateTicket = "UPDATE ticket SET is_rated = 1 WHERE code = ?";
+
+		int seatCount = 0;
 		
 		if (newRate > RATING_UPPER_LIMIT || newRate < RATING_LOWER_LIMIT) {
 			// Invalid rating value, must be between 1 and 5 (inclusive)
@@ -110,35 +127,56 @@ public class Movie {
         }
 
 		Connection conn = null;
-		PreparedStatement psGet = null;
-		PreparedStatement psUpdate = null;
+		PreparedStatement psGetMovie = null;
+		PreparedStatement psGetSeatCount = null;
+		PreparedStatement psUpdateMovie = null;
+		PreparedStatement psUpdateTicket = null;
+		ResultSet rs = null;
 		try {
 			conn = DatabaseManager.getConnection();
-			psGet = conn.prepareStatement(sqlGet);
-			psUpdate = conn.prepareStatement(sqlUpdate);
+			psGetMovie = conn.prepareStatement(sqlGetMovie);
+			psGetSeatCount = conn.prepareStatement(sqlGetSeatCount);
+			psUpdateMovie = conn.prepareStatement(sqlUpdateMovie);
+			psUpdateTicket = conn.prepareStatement(sqlUpdateTicket);
 
 			// Start the transaction
 			conn.setAutoCommit(false);
+
+			// Get seat count
+			psGetSeatCount.setInt(1, ticketCode);
+			rs = psGetSeatCount.executeQuery();
 			
-			// Get the current rating and rating count
-			psGet.setInt(1, id);
-			ResultSet rs = psGet.executeQuery();
-
 			if (rs.next()) {
-				float currentRating = rs.getFloat("rating");
-				int currentRatingCount = rs.getInt("rating_count");
-
-				int newRatingCount = currentRatingCount + ratingCount;
-				float newRating = currentRating + (newRate - currentRating) / ((float) currentRatingCount / ratingCount);
-
-				// Update the rating and rating count
-				psUpdate.setFloat(1, newRating);
-				psUpdate.setInt(2, newRatingCount);
-				psUpdate.setInt(3, id);
-				psUpdate.executeUpdate();
+				seatCount = rs.getInt(1);
 			} else {
 				throw new SQLException("Movie not found");
 			}
+
+			// Get the current rating and rating count
+			psGetMovie.setInt(1, ticketCode);
+			rs = psGetMovie.executeQuery();
+
+			// Update the rating and rating count
+			if (rs.next()) {
+				int movieId = rs.getInt("id");
+				float currentRating = rs.getFloat("rating");
+				int currentRatingCount = rs.getInt("rating_count");
+
+				int newRatingCount = currentRatingCount + seatCount;
+				float newRating = currentRating + (newRate - currentRating) / ((float) currentRatingCount / seatCount);
+
+				// Update the rating and rating count
+				psUpdateMovie.setFloat(1, newRating);
+				psUpdateMovie.setInt(2, newRatingCount);
+				psUpdateMovie.setInt(3, movieId);
+				psUpdateMovie.executeUpdate();
+			} else {
+				throw new SQLException("Movie not found");
+			}
+
+			// Update the ticket to show that it has been rated
+			psUpdateTicket.setInt(1, ticketCode);
+			psUpdateTicket.executeUpdate();
 
 			// Commit the transaction
 			conn.commit();
@@ -154,17 +192,33 @@ public class Movie {
 			}
 			return false;
 		} finally {
-			if (psGet != null) {
+			if (psGetMovie != null) {
 				try {
-					psGet.close();
+					psGetMovie.close();
 				} catch (SQLException e) {
 					System.err.println("Error closing prepared statement");
 					e.printStackTrace();
 				}
 			}
-			if (psUpdate != null) {
+			if (psGetSeatCount != null) {
 				try {
-					psUpdate.close();
+					psGetSeatCount.close();
+				} catch (SQLException e) {
+					System.err.println("Error closing prepared statement");
+					e.printStackTrace();
+				}
+			}
+			if (psUpdateTicket != null) {
+				try {
+					psUpdateTicket.close();
+				} catch (SQLException e) {
+					System.err.println("Error closing prepared statement");
+					e.printStackTrace();
+				}
+			}
+			if (psUpdateMovie != null) {
+				try {
+					psUpdateMovie.close();
 				} catch (SQLException e) {
 					System.err.println("Error closing prepared statement");
 					e.printStackTrace();
