@@ -234,6 +234,7 @@ public class TicketSellingPanel extends JPanel {
 
                     if (ticket == null) {
                         JOptionPane.showMessageDialog(this, "Failed to book the seats.");
+                        return;
                     } else {
                         JOptionPane.showMessageDialog(this, "Payment successful. Ticket number: " + ticket.getCode());
                         selectedSeats.clear();
