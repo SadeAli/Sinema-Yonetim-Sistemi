@@ -18,7 +18,7 @@ import java.util.Map;
 import java.util.logging.Logger;
 
 public class DatabaseManager {
-	public static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine_fake.db";
+	public static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine.db";
 
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(SQLITE_JDBC_URL);
@@ -382,5 +382,38 @@ public class DatabaseManager {
 			}
 		}
 		return false;
+	}
+
+	public static <T> int count (Class<T> clazz, List<FilterCondition> filters) throws NoSuchFieldException, Exception {
+		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
+		StringBuilder query = new StringBuilder("SELECT COUNT(*) FROM " + tableName);
+
+		if (!filters.isEmpty()) {
+			query.append(" WHERE ");
+			for (FilterCondition filter : filters) {
+				Field field = clazz.getDeclaredField(filter.getFieldName());
+				String columnName = DatabaseAnnotationUtils.getColumnName(field);
+				query.append(columnName).append(" ").append(filter.getRelationOperator()).append(" ? AND ");
+			}
+			// Remove the last " AND "
+			query.setLength(query.length() - 5);
+		}
+
+		try (Connection connection = getConnection();
+			 PreparedStatement stmt = connection.prepareStatement(query.toString())) {
+			// Set the filter values in the PreparedStatement
+			int index = 1;
+			for (FilterCondition filter : filters) {
+				DatabaseAnnotationUtils.setPreparedStatementValue(stmt, index, filter.getValue());
+				index++;
+			}
+	
+			ResultSet rs = stmt.executeQuery();
+			return rs.getInt(1);
+
+		} catch (Exception e) {
+			System.err.println("Unable to count rows: " + e.getMessage());
+			throw e;
+		}
 	}
 }
