@@ -167,4 +167,40 @@ public class Ticket {
 			}
 		}
 	}
+
+	public static boolean verifyPurchase(int ticketId) {
+		String sql = "UPDATE ticket SET is_paid = 1 WHERE id = ?";
+
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			ps = conn.prepareStatement(sql);
+
+			ps.setInt(1, ticketId);
+			ps.executeUpdate();
+
+			return true;
+
+		} catch (Exception e) {
+			System.err.println("Unable to verify purchase: " + e.getMessage());
+			return false;
+		} finally {
+			if (ps != null) {
+				try {
+					ps.close();
+				} catch (SQLException e) {
+					System.err.println("Unable to close the statement: " + e.getMessage());
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					System.err.println("Unable to close the connection: " + e.getMessage());
+					e.printStackTrace();
+				}
+			}
+		}
+	}
 }
