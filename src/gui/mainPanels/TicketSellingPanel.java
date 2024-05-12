@@ -50,6 +50,7 @@ public class TicketSellingPanel extends JPanel {
     LocalDate selectedDate;
     List<SeatAvailability> selectedSeats = new ArrayList<>();
     Double defaultPrice = 70.0;
+    Ticket ticket;
 
     public TicketSellingPanel(CinemaGUI parent, int width, int height) {
         this.parent = parent;
@@ -150,8 +151,6 @@ public class TicketSellingPanel extends JPanel {
 
     private class SeatSelectionPanel extends JPanel {
 
-        Ticket ticket = null;
-
         enum SeatState {
             AVAILABLE, SELECTED, UNAVAILABLE
         }
@@ -235,9 +234,6 @@ public class TicketSellingPanel extends JPanel {
                     if (ticket == null) {
                         JOptionPane.showMessageDialog(this, "Failed to book the seats.");
                         return;
-                    } else {
-                        JOptionPane.showMessageDialog(this, "Payment successful. Ticket number: " + ticket.getCode());
-                        selectedSeats.clear();
                     }
 
                     cardLayout.show(this.getParent().getParent(), "Payment");
@@ -369,6 +365,7 @@ public class TicketSellingPanel extends JPanel {
             // add action listeners to buttons
             backButton.addActionListener(e -> {
                 cardLayout.show(TicketSellingPanel.this, "Seat");
+                Ticket.cancelTicket(ticket.getId());
                 seatSelectionPanel.listSeats(selectedSession);
             });
 
@@ -377,8 +374,11 @@ public class TicketSellingPanel extends JPanel {
                 if (false == checkPaymentInfo(nameField.getText(), surnameField.getText(), cardNumberField.getText(),
                         cvvField.getText(), (java.util.Date) expiryDateSpinner.getValue())) {
                     return;
-
                 }
+
+                Ticket.verifyPurchase(ticket.getId());
+
+                JOptionPane.showMessageDialog(this, "Payment successful!" + "\n" + "Your ticket code is: " + ticket.getCode() + "\n");
             });
         }
 
