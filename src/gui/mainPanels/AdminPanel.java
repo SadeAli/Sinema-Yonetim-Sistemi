@@ -1,20 +1,40 @@
 package gui.mainPanels;
 
+import java.awt.BasicStroke;
 import java.awt.BorderLayout;
+import java.awt.Color;
+import java.awt.Dimension;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Random;
 
 import javax.swing.JButton;
+import javax.swing.JComboBox;
+import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
+import javax.swing.SwingUtilities;
 
+import cinema.Movie;
 import cinema.ScreeningRoom;
 import gui.CinemaGUI;
+import gui.mainPanels.adminPanels.MovieComboBox;
 import gui.mainPanels.adminPanels.MovieManagementPanel;
 import gui.mainPanels.adminPanels.ScreeningRoomManagementPanel;
+import java.awt.GridLayout;
+import java.awt.Point;
+import java.awt.RenderingHints;
+import java.awt.Stroke;
+
+import javax.swing.JLabel;
+import javax.swing.JPanel;
 
 public class AdminPanel extends JPanel {
 
@@ -23,6 +43,8 @@ public class AdminPanel extends JPanel {
 
     ScreeningRoomManagementPanel screeningRoomManagementPanel = new ScreeningRoomManagementPanel(screeningRooms);
     JPanel movieManagementPanel = new MovieManagementPanel();
+    DiscountPanel discountPanel = new DiscountPanel();
+    StatisticsPanel statisticsPanel = new StatisticsPanel();
 
     public AdminPanel(CinemaGUI cinemaGUI, int width, int height) {
         setLayout(new BorderLayout());
@@ -30,7 +52,6 @@ public class AdminPanel extends JPanel {
         // Create a toolbar
         JToolBar toolbar = new JToolBar();
         toolbar.setFloatable(false);
-        add(toolbar, BorderLayout.NORTH);
 
         // Create a back button
         JButton backButton = new JButton();
@@ -48,11 +69,14 @@ public class AdminPanel extends JPanel {
 
         // Tabbed Pane for the admin panel
         tabbedPane = new JTabbedPane();
+        add(toolbar, BorderLayout.NORTH);
         add(tabbedPane, BorderLayout.CENTER);
 
         // tabbed pane 0 is the movie-hall management panel
-        tabbedPane.add("Salon Yönetimi", screeningRoomManagementPanel);
-        tabbedPane.add("Film Yönetimi", movieManagementPanel);
+        tabbedPane.add("Room", screeningRoomManagementPanel);
+        tabbedPane.add("Movie", movieManagementPanel);
+        tabbedPane.add("Discount", discountPanel);
+        tabbedPane.add("Statistics", statisticsPanel);
     }
 
     public void onVisible() {
@@ -60,8 +84,38 @@ public class AdminPanel extends JPanel {
     }
 
     private class StatisticsPanel extends JPanel {
+        
+        private Movie selectedMovie;
+        
         public StatisticsPanel() {
             setLayout(new BorderLayout());
+
+            MovieComboBox movieCombobox = new MovieComboBox();
+            
+
+
+            List<Movie> movies = Movie.getAllMovies();
+            selectedMovie = movies.get(0);
+            for (Movie m : movies) {
+                movieCombobox.addItem(m);
+            }
+
+            add(movieCombobox, BorderLayout.NORTH);
+        }
+    }
+
+    private class DiscountPanel extends JPanel {
+
+
+        public DiscountPanel() {
+            
+
+            // calendar panel
+            JPanel calendarPanel = new JPanel(new GridLayout(7, 7));
+            calendarPanel.setPreferredSize(new Dimension(400, 200));
+
+            
+            add(calendarPanel, BorderLayout.CENTER);
         }
     }
 }
