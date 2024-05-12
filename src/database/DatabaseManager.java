@@ -29,6 +29,20 @@ public class DatabaseManager {
 		return false;
     }
 
+	public static boolean setAutoCommit(Connection connection, boolean autoCommit) {
+		if (connection != null) {
+			try {
+				connection.setAutoCommit(autoCommit);
+				return true;
+			} catch (SQLException e) {
+				System.err.println("Unable to set auto commit: " + e.getMessage());
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
 	/**
 	 * Retrieves all rows from the database table associated with the given class.
 	 * 
@@ -427,5 +441,39 @@ public class DatabaseManager {
 			System.err.println("Unable to delete row: " + e.getMessage());
 			return false;
 		}
+	}
+
+	public static boolean clearResources (Connection conn, List<Statement> statementList) {
+		boolean success = true;
+		if (statementList != null) {
+			success = closeStatements(statementList);
+		}
+		if (conn != null) {
+			try {
+				conn.close();
+			} catch (SQLException e) {
+				System.err.println("Unable to close connection: " + e.getMessage());
+				success = false;
+			}
+		}
+		return success;
+	}
+
+	public static boolean closeStatements (List<Statement> statementList) {
+		boolean success = true;
+		if (statementList == null) {
+			return success;
+		}
+		for (Statement stmt : statementList) {
+			if (stmt != null) {
+				try {
+					stmt.close();
+				} catch (SQLException e) {
+					System.err.println("Unable to close statement: " + e.getMessage());
+					success = false;
+				}
+			}
+		}
+		return success;
 	}
 }

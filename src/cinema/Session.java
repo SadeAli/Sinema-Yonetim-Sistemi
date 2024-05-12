@@ -197,4 +197,77 @@ public class Session {
 			}
 		}
 	}
+
+	private static boolean deleteUtil(int sessionId, Connection conn) {
+		String query = "DELETE FROM session WHERE id = ?";
+		String querySeatAvailability = "DELETE FROM seat_availability WHERE session_id = ?";
+		String queryCheckTicket = "SELECT id FROM seat_availability"
+			+" JOIN ticket ON seat_availability.ticket_id = ticket.id"
+			+" LIMIT 1";
+
+		PreparedStatement ps = null;
+		PreparedStatement psSeatAvailability = null;
+		PreparedStatement psCheckTicket = null;
+
+		try {
+			psCheckTicket = conn.prepareStatement(queryCheckTicket);
+			ResultSet rs = psCheckTicket.executeQuery();
+			if (rs.next()) {
+				throw new SQLException("Unable to delete session: there are tickets associated with this session");
+			}
+
+			psSeatAvailability = conn.prepareStatement(querySeatAvailability);
+			psSeatAvailability.setInt(1, sessionId);
+			psSeatAvailability.executeUpdate();
+
+			ps = conn.prepareStatement(query);
+			ps.setInt(1, sessionId);
+			ps.executeUpdate();
+
+			return true;
+		} catch (SQLException e) {
+			System.err.println("Unable to delete session: " + e.getMessage());
+			return false;
+		} finally {
+			DatabaseManager.closeStatements(List.of(ps, psSeatAvailability, psCheckTicket));
+		}
+	}
+
+	public static boolean delete(int sessionId) {
+		Connection conn = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			conn.setAutoCommit(false);
+			
+			if (!deleteUtil(sessionId, conn)) {
+				throw new SQLException("Unable to delete session");
+			}
+
+			conn.commit();
+			return true;
+		} catch (SQLException e) {
+			if (conn != null) {
+				try {
+					conn.rollback();
+				} catch (SQLException e1) {
+					System.err.println("Unable to rollback transaction: " + e1.getMessage());
+				}
+			}
+			System.err.println("Unable to delete session: " + e.getMessage());
+			return false;
+		} finally {
+			if (conn != null) {
+				try {
+					conn.setAutoCommit(true);
+				} catch (SQLException e) {
+					e.printStackTrace();
+				}
+			}
+			DatabaseManager.closeConnection(conn);
+		}
+	}
+
+	public static boolean delete(int sessionId, Connection conn) {
+		return deleteUtil(sessionId, conn);
+	}
 }
