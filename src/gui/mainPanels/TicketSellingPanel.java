@@ -149,6 +149,8 @@ public class TicketSellingPanel extends JPanel {
 
     private class SeatSelectionPanel extends JPanel {
 
+        Ticket ticket = null;
+
         enum SeatState {
             AVAILABLE, SELECTED, UNAVAILABLE
         }
@@ -225,6 +227,15 @@ public class TicketSellingPanel extends JPanel {
                     if (selectedSeats.isEmpty()) {
                         JOptionPane.showMessageDialog(this, "Please select at least one seat");
                         return;
+                    }
+
+                    ticket = SeatAvailability.bookSeatList(selectedSeats);
+
+                    if (ticket == null) {
+                        JOptionPane.showMessageDialog(this, "Failed to book the seats.");
+                    } else {
+                        JOptionPane.showMessageDialog(this, "Payment successful. Ticket number: " + ticket.getCode());
+                        selectedSeats.clear();
                     }
 
                     cardLayout.show(this.getParent().getParent(), "Payment");
@@ -364,15 +375,7 @@ public class TicketSellingPanel extends JPanel {
                 if (false == checkPaymentInfo(nameField.getText(), surnameField.getText(), cardNumberField.getText(),
                         cvvField.getText(), (java.util.Date) expiryDateSpinner.getValue())) {
                     return;
-                }
 
-                Ticket ticket = SeatAvailability.bookSeatList(selectedSeats);
-
-                if (ticket == null) {
-                    JOptionPane.showMessageDialog(this, "Failed to book the seats.");
-                } else {
-                    JOptionPane.showMessageDialog(this, "Payment successful. Ticket number: " + ticket.getId());
-                    selectedSeats.clear();
                 }
             });
         }
@@ -401,20 +404,6 @@ public class TicketSellingPanel extends JPanel {
                 return false;
             }
             
-            try {
-                int cardNumberInt = Integer.parseInt(cardNumber);
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "Card number must be a valid integer.");
-                return false;
-            }
-
-            try {
-                int cvvInt = Integer.parseInt(cvv);
-            } catch (NumberFormatException e) {
-                JOptionPane.showMessageDialog(this, "CVV must be a valid integer.");
-                return false;
-            }
-
             return true;
         }
     }
