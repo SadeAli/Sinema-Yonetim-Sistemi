@@ -2,6 +2,12 @@
 Bir sinema salonunun koltuk satışlarının kolay bir şekilde düzenlenebilmesi
 ve yönetilebilmesi için hazırlanmış bir **İşlemsel Bilgi Sistemi**
 
+## Kurulum için
+### Derlemek için
+  javac -cp "dependencies/*" -d bin src/cinema/*.java src/database/*.java src/gui/*.java src/gui/mainPanels/*
+### Çalıştırmak için
+  java -cp "bin;dependencies/*" gui.CinemaGUI
+
 ## İçindekiler
 [Sistemin Amacı](#sistemin-amac%C4%B1)  
 [Sistemin Bileşenleri](#sistemin-bile%C5%9Fenleri)  
