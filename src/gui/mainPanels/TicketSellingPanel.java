@@ -283,7 +283,7 @@ public class TicketSellingPanel extends JPanel {
                                 this.setBorder(new LineBorder(disabledColor, 1));
                                 break;
                             default:
-                                // TODO: give feedback to the user
+                                JOptionPane.showMessageDialog(this, "Some error occured. Please try again.");
                                 break;
                         }
                     });

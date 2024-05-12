@@ -29,12 +29,6 @@ import gui.mainPanels.adminPanels.MovieComboBox;
 import gui.mainPanels.adminPanels.MovieManagementPanel;
 import gui.mainPanels.adminPanels.ScreeningRoomManagementPanel;
 import java.awt.GridLayout;
-import java.awt.Point;
-import java.awt.RenderingHints;
-import java.awt.Stroke;
-
-import javax.swing.JLabel;
-import javax.swing.JPanel;
 
 public class AdminPanel extends JPanel {
 
@@ -92,7 +86,8 @@ public class AdminPanel extends JPanel {
 
             MovieComboBox movieCombobox = new MovieComboBox();
             
-
+            // here is your panel
+            JPanel centerPanel = new OmerPanel(selectedMovie);
 
             List<Movie> movies = Movie.getAllMovies();
             selectedMovie = movies.get(0);
@@ -101,12 +96,18 @@ public class AdminPanel extends JPanel {
             }
 
             add(movieCombobox, BorderLayout.NORTH);
+            add(centerPanel, BorderLayout.CENTER);
+
+            movieCombobox.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    selectedMovie = (Movie) movieCombobox.getSelectedItem();
+                    centerPanel.repaint();
+                }
+            });
         }
     }
 
     private class DiscountPanel extends JPanel {
-
-
         public DiscountPanel() {
             
 
@@ -116,6 +117,12 @@ public class AdminPanel extends JPanel {
 
             
             add(calendarPanel, BorderLayout.CENTER);
+        }
+    }
+
+    private class OmerPanel extends JPanel {
+        public OmerPanel(Movie movie) {
+            
         }
     }
 }

@@ -88,6 +88,29 @@ public class Movie {
 
 	
 	// Setters
+	public void setName(String name) {
+		this.name = name;
+	}
+
+	public void setDuration(int duration) {
+		this.duration = duration;
+	}
+
+	public void setReleaseDate(LocalDate releaseDate) {
+		this.releaseDate = releaseDate;
+	}
+
+	public void setLastScreeningDate(LocalDate lastScreeningDate) {
+		this.lastScreeningDate = lastScreeningDate;
+	}
+
+	public void setRating(float rating) {
+		this.rating = rating;
+	}
+
+	public void setRatingCount(int ratingCount) {
+		this.ratingCount = ratingCount;
+	}
 	
 	
 	public static List<Movie> getAllMovies() {
