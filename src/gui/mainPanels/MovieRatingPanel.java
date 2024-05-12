@@ -50,15 +50,10 @@ public class MovieRatingPanel extends JPanel {
         setBorder(new EmptyBorder(250, 100, 250, 100));
 
         // a text field for displaying warnings
-        JTextField warningField = new JTextField();
         ticketNumberField = new JTextField();
 
         // set the initial rating to 0
         rating = 0;
-
-        warningField.setEditable(false);
-        warningField.setBounds(width / 2 - 100, height / 2 - 250, 200, 30);
-        warningField.setPreferredSize(warningField.getSize());
 
         // a text field for entering the ticket number
         ticketNumberField.setText("Enter the ticket number");
@@ -84,7 +79,6 @@ public class MovieRatingPanel extends JPanel {
         buttonPanel.add(submitButton, BorderLayout.EAST);
         buttonPanel.add(backButton, BorderLayout.WEST);
 
-        add(warningField);
         add(ticketNumberField);
         add(ratingBox);
         add(buttonPanel);
@@ -92,7 +86,9 @@ public class MovieRatingPanel extends JPanel {
         ticketNumberField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
-                ticketNumberField.setText("");
+                if (ticketNumberField.getText().equals("Enter the ticket number")) {
+                    ticketNumberField.setText("");
+                }
             }
 
             @Override
@@ -128,39 +124,24 @@ public class MovieRatingPanel extends JPanel {
             @Override
             public void actionPerformed(ActionEvent e) {
                 if (rating == 0) {
-                    warningField.setText("Please select a rating!");
+                    JOptionPane.showMessageDialog(parent, "Please select a rating!");
                     return;
                 }
 
                 String ticketNumber = ticketNumberField.getText();
                 try {
                     int ticketCode = Integer.parseInt(ticketNumber);
-                    Ticket ticket = DatabaseManager.getRowsFilteredAndSortedBy(Ticket.class, List.of(
-                            new FilterCondition("code", ticketCode, Relation.EQUALS)), ticketNumber, false).get(0);
-
-                    // check if any ticket is found
-                    if (ticket == null) {
-                        JOptionPane.showMessageDialog(parent, "Ticket not found!", "Error", JOptionPane.ERROR_MESSAGE);
+                    if (Movie.addRating(ticketCode, rating)) {
+                        JOptionPane.showMessageDialog(parent, "Rating submitted successfully!");
                     } else {
-                        // if not found,
-                        if (ticket.isPaid() == false) {
-                            JOptionPane.showMessageDialog(parent, "Ticket is not paid or already rated!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                        }
-
-                        if (ticket.isRated() == true) {
-                            JOptionPane.showMessageDialog(parent, "Ticket is already rated!", "Error",
-                                    JOptionPane.ERROR_MESSAGE);
-                        }
+                        JOptionPane.showMessageDialog(parent, "Invalid ticket or ticket is already used to rate a movie!");
                     }
-
-                    Movie.addRating(ticketCode, rating);
 
                     parent.showMainMenu();
                 } catch (NumberFormatException ex) {
-                    warningField.setText("Invalid ticket number!");
+                    JOptionPane.showMessageDialog(parent, "Invalid ticket number!");
                 } catch (Exception ex) {
-                    warningField.setText("An error occurred while submitting the rating!");
+                    JOptionPane.showMessageDialog(parent, "An error occurred while submitting the rating!");
                     ex.printStackTrace();
                 }
             }

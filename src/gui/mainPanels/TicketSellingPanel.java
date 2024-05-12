@@ -379,6 +379,8 @@ public class TicketSellingPanel extends JPanel {
                 Ticket.verifyPurchase(ticket.getId());
 
                 JOptionPane.showMessageDialog(this, "Payment successful!" + "\n" + "Your ticket code is: " + ticket.getCode() + "\n");
+
+                parent.showMainMenu();
             });
         }
 
