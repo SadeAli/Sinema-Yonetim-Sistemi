@@ -1,21 +1,14 @@
 package database;
-import java.lang.reflect.Constructor;
 import java.lang.reflect.Field;
-import java.lang.reflect.InvocationTargetException;
 import java.sql.Connection;
-import java.sql.Date;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.logging.Logger;
 
 public class DatabaseManager {
 	public static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine.db";
@@ -232,12 +225,14 @@ public class DatabaseManager {
 		Field[] fields = clazz.getDeclaredFields();
 		List<Object> values = new ArrayList<>();
 	
+		int idIndex = 1;
 		// Add the column names and values to the query
 		for (Field field : fields) {
 			if (!DatabaseAnnotationUtils.isPrimaryKey(field) && field.getAnnotation(ColumnName.class) != null) {
 				String columnName = DatabaseAnnotationUtils.getColumnName(field);
 				values.add(DatabaseAnnotationUtils.getFieldValue(field, object));
 				queryBuilder.append(columnName).append(" = ?, ");
+				idIndex++;
 			}
 		}
 	
@@ -257,6 +252,8 @@ public class DatabaseManager {
 				object,
 				statement
 			);
+
+			statement.setInt(idIndex, DatabaseAnnotationUtils.getPrimaryKeyValue(object));
 	
 			int affectedRows = statement.executeUpdate();
 	
@@ -384,7 +381,7 @@ public class DatabaseManager {
 		return false;
 	}
 
-	public static <T> int count (Class<T> clazz, List<FilterCondition> filters) throws NoSuchFieldException, Exception {
+	public static <T> int count(Class<T> clazz, List<FilterCondition> filters) throws NoSuchFieldException, Exception {
 		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 		StringBuilder query = new StringBuilder("SELECT COUNT(*) FROM " + tableName);
 
@@ -414,6 +411,21 @@ public class DatabaseManager {
 		} catch (Exception e) {
 			System.err.println("Unable to count rows: " + e.getMessage());
 			throw e;
+		}
+	}
+
+	public static <T> boolean deleteRow(Class<T> clazz, int id) throws SQLException {
+		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
+		String query = "DELETE FROM " + tableName + " WHERE id = ?";
+
+		try (Connection connection = getConnection();
+			 PreparedStatement stmt = connection.prepareStatement(query)) {
+			stmt.setInt(1, id);
+			int affectedRows = stmt.executeUpdate();
+			return affectedRows > 0;
+		} catch (SQLException e) {
+			System.err.println("Unable to delete row: " + e.getMessage());
+			return false;
 		}
 	}
 }

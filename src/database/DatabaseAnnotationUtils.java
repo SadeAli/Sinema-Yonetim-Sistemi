@@ -62,6 +62,16 @@ public final class DatabaseAnnotationUtils {
 		throw new IllegalArgumentException("Class " + clazz.getName() + " does not have a field with the PrimaryKey annotation");
 	}
 
+	public static int getPrimaryKeyValue(Object object) {
+		Class<?> clazz= object.getClass();
+		for (Field field : clazz.getDeclaredFields()) {
+			if (field.getAnnotation(PrimaryKey.class) != null) {
+				return (int) getFieldValue(field, object);
+			}
+		}
+		throw new IllegalArgumentException("Object " + object.getClass().getName() + " does not have a field with the PrimaryKey annotation");
+	}
+
 	public static <T> T createNewInstance(Class<T> clazz) {
 		T object = null;
 		try {
@@ -158,6 +168,8 @@ public final class DatabaseAnnotationUtils {
 			stmt.setBoolean(index, (Boolean) value);
 		} else if (value instanceof LocalTime) {
 			stmt.setString(index, ((LocalTime) value).format(DateTimeFormatter.ofPattern("HH:mm:ss"))); 
+		} else if (value instanceof String) {
+			stmt.setString(index, (String) value);
 		} else {
 			System.err.println("Setting value with setObject for type: " + value.getClass().getName());
 			stmt.setObject(index, value);

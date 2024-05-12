@@ -1,14 +1,15 @@
 package cinema;
+
+import database.*;
+
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.time.format.DateTimeFormatter;
 import java.time.LocalDate;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
-
-import database.*;
 
 @TableName ("movie")
 public class Movie {
@@ -294,6 +295,56 @@ public class Movie {
 				}
 			}
 		}
+	}
+
+	public static int getSales(int movieId) {
+		String sql = "SELECT COUNT(*)"
+			+ " FROM seat_availability"
+			+ " JOIN ticket ON seat_availability.ticket_id = ticket.id"
+			+ " JOIN session ON seat_availability.session_id = session.id"
+			+ " JOIN movie ON session.movie_id = movie.id"
+			+ " WHERE movie.id = ? AND ticket.is_paid = 1";
+
+		Connection conn = null;
+		PreparedStatement ps = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			ps = conn.prepareStatement(sql);
+
+			// Set the parameters
+			ps.setInt(1, movieId);
+			ps.execute();
+
+			ResultSet rs = ps.executeQuery();
+
+			if (rs.next()) {
+				return rs.getInt(1);
+			} else {
+				return 0;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		} finally {
+			if (ps != null) {
+				try {
+					ps.close();
+				} catch (SQLException e) {
+					System.err.println("Error closing prepared statement");
+					e.printStackTrace();
+				}
+			}
+			if (conn != null) {
+				try {
+					conn.close();
+				} catch (SQLException e) {
+					System.err.println("Error closing connection");
+					e.printStackTrace();
+				}
+			}
+		}
+	
 	}
 
 	// Method to check if a movie is currently showing
