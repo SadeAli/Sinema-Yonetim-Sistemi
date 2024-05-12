@@ -134,9 +134,9 @@ public class MovieRatingPanel extends JPanel {
 
                 String ticketNumber = ticketNumberField.getText();
                 try {
-                    int ticketId = Integer.parseInt(ticketNumber);
+                    int ticketCode = Integer.parseInt(ticketNumber);
                     Ticket ticket = DatabaseManager.getRowsFilteredAndSortedBy(Ticket.class, List.of(
-                            new FilterCondition("code", ticketId, Relation.EQUALS)), ticketNumber, false).get(0);
+                            new FilterCondition("code", ticketCode, Relation.EQUALS)), ticketNumber, false).get(0);
 
                     // check if any ticket is found
                     if (ticket == null) {
@@ -154,18 +154,7 @@ public class MovieRatingPanel extends JPanel {
                         }
                     }
 
-                    // add rating to the database
-                    List<SeatAvailability> seatAvailabilities = DatabaseManager
-                            .getRowsFilteredAndSortedBy(SeatAvailability.class, List.of(
-                                    new FilterCondition("ticket_id", ticket.getId(), Relation.EQUALS)), "id", false);
-                    for (SeatAvailability seatAvailability : seatAvailabilities) {
-                        int sessionID = seatAvailability.getSessionId();
-                        Session session = DatabaseManager.getRowById(Session.class, sessionID);
-                        Movie movie = DatabaseManager.getRowById(Movie.class, session.getMovieId());
-                        Movie.addRating(movie.getId(), rating, 1);
-                    }
-
-                    // TODO update the ticket to be rated
+                    Movie.addRating(ticketCode, rating);
 
                     parent.showMainMenu();
                 } catch (NumberFormatException ex) {

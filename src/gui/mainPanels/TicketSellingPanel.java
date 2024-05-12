@@ -49,6 +49,7 @@ public class TicketSellingPanel extends JPanel {
     Session selectedSession;
     LocalDate selectedDate;
     List<SeatAvailability> selectedSeats = new ArrayList<>();
+    Double defaultPrice = 70.0;
 
     public TicketSellingPanel(CinemaGUI parent, int width, int height) {
         this.parent = parent;
@@ -229,7 +230,7 @@ public class TicketSellingPanel extends JPanel {
                         return;
                     }
 
-                    ticket = SeatAvailability.bookSeatList(selectedSeats);
+                    ticket = SeatAvailability.bookSeatList(selectedSeats, defaultPrice * selectedSeats.size());
 
                     if (ticket == null) {
                         JOptionPane.showMessageDialog(this, "Failed to book the seats.");
