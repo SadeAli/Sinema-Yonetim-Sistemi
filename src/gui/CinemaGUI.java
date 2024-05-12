@@ -26,9 +26,6 @@ public class CinemaGUI extends JFrame {
 
     public static void main(String[] args) {
 
-        @SuppressWarnings("unused")
-        CinemaGUI cinemaGUI = new CinemaGUI();
-
         String lookAndFeel[] = {
                 "javax.swing.plaf.metal.MetalLookAndFeel",
                 "javax.swing.plaf.nimbus.NimbusLookAndFeel",
@@ -42,6 +39,9 @@ public class CinemaGUI extends JFrame {
         } catch (Exception e) {
             e.printStackTrace();
         }
+
+        @SuppressWarnings("unused")
+        CinemaGUI cinemaGUI = new CinemaGUI();
     }
 
     CinemaGUI() {
