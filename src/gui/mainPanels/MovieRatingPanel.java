@@ -133,17 +133,17 @@ public class MovieRatingPanel extends JPanel {
                     int ticketCode = Integer.parseInt(ticketNumber);
                     if (Movie.addRating(ticketCode, rating)) {
                         JOptionPane.showMessageDialog(parent, "Rating submitted successfully!");
+                        parent.showMainMenu();
                     } else {
                         JOptionPane.showMessageDialog(parent, "Invalid ticket or ticket is already used to rate a movie!");
                     }
-
-                    parent.showMainMenu();
                 } catch (NumberFormatException ex) {
                     JOptionPane.showMessageDialog(parent, "Invalid ticket number!");
                 } catch (Exception ex) {
                     JOptionPane.showMessageDialog(parent, "An error occurred while submitting the rating!");
                     ex.printStackTrace();
                 }
+
             }
         });
 

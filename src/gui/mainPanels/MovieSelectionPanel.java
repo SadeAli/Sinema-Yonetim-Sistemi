@@ -17,6 +17,7 @@ import javax.swing.JSpinner.DateEditor;
 
 import cinema.Genre;
 import cinema.Movie;
+import cinema.MovieGenre;
 import cinema.Session;
 
 import database.DatabaseManager;
@@ -57,6 +58,7 @@ public class MovieSelectionPanel extends JPanel {
     private String nameQuery = "";
     private String sortOrder = "rating";
     private boolean ascending = false;
+    List<Genre> selectedGenreList = new ArrayList<>();
 
     /**
      * Constructor for the movie selection window.
@@ -131,10 +133,17 @@ public class MovieSelectionPanel extends JPanel {
 
     public void applyFilter() {
         List<Session> sessions = new ArrayList<>();
-
-        // TODO add genre filter
+        List<MovieGenre> movieGenres = new ArrayList<>();
 
         try {
+            for (Genre genre : selectedGenreList) {
+                MovieGenre movieGenre = DatabaseManager
+                        .getRowsFilteredAndSortedBy(MovieGenre.class,
+                                List.of(new FilterCondition("genreId", genre.getId(), Relation.EQUALS)), "id", true)
+                        .get(0);
+                movieGenres.add(movieGenre);
+            }
+
             // get movies
             movieList = DatabaseManager.getRowsFilteredAndSortedBy(
                     Movie.class,
@@ -169,6 +178,25 @@ public class MovieSelectionPanel extends JPanel {
 
         movieList = availableMovies;
 
+        if (!selectedGenreList.isEmpty()) {
+            availableMovies = new ArrayList<>();
+            for (Movie movie : movieList) {
+                boolean hasAllGenres = true;
+                for (MovieGenre mg : movieGenres) {
+                    if (mg.getMovieId() != movie.getId()) {
+                        hasAllGenres = false;
+                        break;
+                    }
+                }
+
+                if (hasAllGenres) {
+                    availableMovies.add(movie);
+                }
+            }
+
+            movieList = availableMovies;
+        }
+
         reapintMoviePanels();
     }
 
@@ -194,8 +222,6 @@ public class MovieSelectionPanel extends JPanel {
         }
 
         private class FilterPopup extends JDialog {
-
-            List<Genre> selectedGenreList = new ArrayList<>();
             List<Genre> genreSelectionList = Genre.getAllGenres();
             GenreBox genreBox;
             GenreList genreList;
@@ -310,7 +336,7 @@ public class MovieSelectionPanel extends JPanel {
                     return new Dimension(300, 100);
                 }
             }
-            
+
             private class GenreBox extends JComboBox<Genre> {
                 public GenreBox() {
                     super(Genre.getAllGenres().toArray(new Genre[0]));
