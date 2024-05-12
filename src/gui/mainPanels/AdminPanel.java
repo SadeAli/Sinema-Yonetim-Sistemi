@@ -5,6 +5,7 @@ import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.FocusEvent;
@@ -13,11 +14,9 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
-import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
@@ -29,15 +28,10 @@ import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JTabbedPane;
 import javax.swing.JTable;
-import javax.swing.JTextField;
 import javax.swing.JToolBar;
-import javax.swing.event.TableColumnModelEvent;
 import javax.swing.event.TableModelEvent;
 import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableColumnModel;
-import javax.swing.table.TableModel;
 
 import cinema.Movie;
 import cinema.ScreeningRoom;
@@ -98,11 +92,30 @@ public class AdminPanel extends JPanel {
 
         public ScreeningRoomManagementPanel() {
             setLayout(new BorderLayout());
-            add(scrollPane, BorderLayout.CENTER);
+
             mainPanel.setLayout(new BoxLayout(mainPanel, BoxLayout.Y_AXIS));
+            mainPanel.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
             scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+            scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
 
             JComboBox<Movie> movieCombobox = new JComboBox<>();
+
+            List<Movie> movies = Movie.getAllMovies();
+            selectedMovie = movies.get(0);
+            for (Movie m : movies) {
+                movieCombobox.addItem(m);
+            }
+
+            add(scrollPane, BorderLayout.CENTER);
+            add(movieCombobox, BorderLayout.NORTH);
+
+            movieCombobox.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    selectedMovie = (Movie) movieCombobox.getSelectedItem();
+                    onVisible();
+                }
+            });
+
             movieCombobox.setRenderer(new DefaultListCellRenderer() {
 
                 @Override
@@ -121,22 +134,6 @@ public class AdminPanel extends JPanel {
                     return this;
                 }
             });
-
-            List<Movie> movies = Movie.getAllMovies();
-            selectedMovie = movies.get(0);
-
-            for (Movie m : movies) {
-                movieCombobox.addItem(m);
-            }
-
-            movieCombobox.addActionListener(new ActionListener() {
-                public void actionPerformed(ActionEvent e) {
-                    selectedMovie = (Movie) movieCombobox.getSelectedItem();
-                    onVisible();
-                }
-            });
-
-            add(movieCombobox, BorderLayout.NORTH);
         }
 
         public void onVisible() {
@@ -154,27 +151,29 @@ public class AdminPanel extends JPanel {
             public DayMoviePanel(ScreeningRoom screeningRoom) {
 
                 setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+                setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
+                JLabel nameLabel = new JLabel(String.format("%5s %-3s", "Room ", screeningRoom.getId()));
                 JPanel assignmentPanel = new JPanel();
+
                 assignmentPanel.setLayout(new BoxLayout(assignmentPanel, BoxLayout.X_AXIS));
+
+                nameLabel.setToolTipText("Room " + screeningRoom.getId() + " - " + screeningRoom.getSeatRowCount()
+                        + "x" + screeningRoom.getSeatColCount() + " koltuk");
+
+                assignmentPanel.add(nameLabel);
                 add(assignmentPanel);
 
-                JLabel nameLabel = new JLabel("Salon " + screeningRoom.getId());
-                nameLabel.setToolTipText("Salon " + screeningRoom.getId() + " - " + screeningRoom.getSeatRowCount()
-                        + "x" + screeningRoom.getSeatColCount() + " koltuk");
-                assignmentPanel.add(nameLabel);
-
-                List<Session> sessionList = null;
                 // get sessions for the screening room
-                List<FilterCondition> filterConditions = new ArrayList<>();
-                filterConditions.add(new FilterCondition("screeningRoomId", screeningRoom.getId(),
-                        FilterCondition.Relation.EQUALS));
-                filterConditions.add(new FilterCondition("date", LocalDate.now(),
-                        FilterCondition.Relation.GREATER_THAN_OR_EQUALS));
-                filterConditions.add(new FilterCondition("date", LocalDate.now().plusDays(30),
-                        FilterCondition.Relation.LESS_THAN));
+                List<Session> sessionList = null;
                 try {
-                    sessionList = DatabaseManager.getRowsFilteredAndSortedBy(Session.class, filterConditions,
+                    sessionList = DatabaseManager.getRowsFilteredAndSortedBy(Session.class,
+                            List.of(new FilterCondition("screeningRoomId", screeningRoom.getId(),
+                                    FilterCondition.Relation.EQUALS),
+                                    new FilterCondition("date", LocalDate.now(),
+                                            FilterCondition.Relation.GREATER_THAN_OR_EQUALS),
+                                    new FilterCondition("date", LocalDate.now().plusDays(30),
+                                            FilterCondition.Relation.LESS_THAN)),
                             "date", false);
                 } catch (Exception e) {
                     e.printStackTrace();
@@ -191,12 +190,13 @@ public class AdminPanel extends JPanel {
                 Movie movieArray[] = new Movie[30];
                 for (int i = 0; i < 30; i++) {
                     if (sessionArray[i] != null) {
-                        filterConditions = new ArrayList<>();
-                        filterConditions.add(new FilterCondition("id", sessionArray[i].getMovieId(),
-                                FilterCondition.Relation.EQUALS));
                         try {
                             movieArray[i] = DatabaseManager
-                                    .getRowsFilteredAndSortedBy(Movie.class, filterConditions, "id", true).get(0);
+                                    .getRowsFilteredAndSortedBy(Movie.class,
+                                            List.of(new FilterCondition("id", sessionArray[i].getMovieId(),
+                                                    FilterCondition.Relation.EQUALS)),
+                                            "id", true)
+                                    .get(0);
                         } catch (Exception e) {
                             e.printStackTrace();
                         }
@@ -205,31 +205,42 @@ public class AdminPanel extends JPanel {
 
                 // create buttons for each day
                 for (int i = 0; i < 30; i++) {
+                    assignmentPanel.add(new DayMovieButtonPanel(i, movieArray[i], screeningRoom));
+                }
+            }
+
+            private class DayMovieButtonPanel extends JButton {
+                public DayMovieButtonPanel(final int index, Movie movie, ScreeningRoom screeningRoom) {
+
                     JButton button = new JButton();
 
-                    final int dayIndex = i;
+                    button.setText(LocalDate.now().plusDays(index).getMonthValue() + "/"
+                            + LocalDate.now().plusDays(index).getDayOfMonth());
 
-                    button.setText(LocalDate.now().plusDays(i).getMonthValue() + "/"
-                            + LocalDate.now().plusDays(i).getDayOfMonth());
-                    Movie movie = movieArray[dayIndex];
-                    final String movieName = movie == null ? "Boş" : movie.getName();
+                    if (movie != null) {
+                        button.setToolTipText(movie.getName());
+                        this.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+                    } else {
+                        button.setToolTipText("Boş");
+                        this.setBorder(BorderFactory.createLineBorder(Color.gray, 2));
+                    }
+
+                    this.setSize(new Dimension(100, 100));
+                    this.setMargin(new Insets(50, 50, 50, 50));
+                    this.add(button);
 
                     button.addActionListener(new ActionListener() {
                         public void actionPerformed(ActionEvent e) {
-                            if (screeningRoom.addMovieToDate(LocalDate.now().plusDays(dayIndex),
+                            if (screeningRoom.addMovieToDate(LocalDate.now().plusDays(index),
                                     selectedMovie.getId()))
                                 System.out.println("added movie " + selectedMovie.getId() + " to date "
-                                        + LocalDate.now().plusDays(dayIndex));
+                                        + LocalDate.now().plusDays(index));
                             else
                                 System.out.println("unable to add movie " + selectedMovie.getId() + " to date "
-                                        + LocalDate.now().plusDays(dayIndex));
+                                        + LocalDate.now().plusDays(index));
                             onVisible();
                         }
                     });
-
-                    button.setToolTipText(movieName);
-
-                    assignmentPanel.add(button);
                 }
             }
         }
