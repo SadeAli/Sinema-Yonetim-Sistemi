@@ -258,7 +258,7 @@ public class MovieManagementPanel extends JPanel {
                     movie.setName((String) value);
                     break;
                 case 1:
-                    movie.setDuration(Math.round((float)value));
+                    movie.setDuration((int)value);
                     break;
                 case 2:
                     movie.setLastScreeningDate((LocalDate) value);
@@ -270,7 +270,7 @@ public class MovieManagementPanel extends JPanel {
                     movie.setRating((float) value);
                     break;
                 case 5:
-                    movie.setRatingCount(Math.round((float)value));
+                    movie.setRatingCount((int)value);
                     break;
                 default:
                     break;
