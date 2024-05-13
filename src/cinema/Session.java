@@ -201,7 +201,7 @@ public class Session {
 	private static boolean deleteUtil(int sessionId, Connection conn) {
 		String query = "DELETE FROM session WHERE id = ?";
 		String querySeatAvailability = "DELETE FROM seat_availability WHERE session_id = ?";
-		String queryCheckTicket = "SELECT id FROM seat_availability"
+		String queryCheckTicket = "SELECT seat_availability.id FROM seat_availability"
 			+" JOIN ticket ON seat_availability.ticket_id = ticket.id"
 			+" LIMIT 1";
 
