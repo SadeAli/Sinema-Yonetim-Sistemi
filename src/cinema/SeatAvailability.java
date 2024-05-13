@@ -8,8 +8,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Random;
 
-import javax.naming.spi.DirStateFactory.Result;
-
 import database.*;
 
 @TableName("seat_availability")
