@@ -62,6 +62,7 @@ public class ScreeningRoomManagementPanel extends JPanel {
         }
 
         southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
+        southPanel.setPreferredSize(new Dimension(100, 100));
         southPanel.add(new ManagementPanel());
         southPanel.add(new DiscountPanel());
 
@@ -115,8 +116,8 @@ public class ScreeningRoomManagementPanel extends JPanel {
     private class ManagementPanel extends JPanel {
         public ManagementPanel() {
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-            JButton addButton = new JButton("Add");
-            JButton removeButton = new JButton("Remove");
+            JButton addButton = new JButton("Add Room");
+            JButton removeButton = new JButton("Remove Room");
 
             add(addButton);
             add(removeButton);
@@ -187,20 +188,23 @@ public class ScreeningRoomManagementPanel extends JPanel {
         }
     }
 
-    private class DiscountPanel extends JPanel {
+    private class DiscountPanel extends JScrollPane {
 
         List<Discount> discountList = null;
+        JPanel contentPanel = new JPanel();
 
         public DiscountPanel() {
-            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
-            setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+            contentPanel.setLayout(new BoxLayout(contentPanel, BoxLayout.X_AXIS));
+            contentPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+            setViewportView(contentPanel);
 
             listDiscounts();
         }
 
         public void listDiscounts() {
-            this.removeAll();
-            this.add(new JLabel("Discounts: "));
+            contentPanel.removeAll();
+            contentPanel.add(new JLabel("Discounts: "));
 
             try {
                 discountList = DatabaseManager.getRowsFilteredAndSortedBy(Discount.class,
@@ -219,10 +223,10 @@ public class ScreeningRoomManagementPanel extends JPanel {
             }
 
             for (int i = 0; i < 30; i++) {
-                this.add(new DayDiscountButton(i, discountArray[i]));
+                contentPanel.add(new DayDiscountButton(i, discountArray[i]));
             }
 
-            this.revalidate();
+            contentPanel.revalidate();
         }
 
         private class DayDiscountButton extends JButton {
