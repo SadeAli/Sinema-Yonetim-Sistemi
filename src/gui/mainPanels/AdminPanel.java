@@ -129,7 +129,7 @@ public class AdminPanel extends JPanel {
     }
 
     private class OmerPanel extends JPanel {
-		DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+		private DefaultCategoryDataset dataset = new DefaultCategoryDataset();
         
 		public OmerPanel(Movie movie) {
 			movie = Movie.getAllMovies().get(0);

@@ -34,6 +34,8 @@ public class CinemaGUI extends JFrame {
     private AdminPanel adminPanel = new AdminPanel(this, width, height);
 
     public static void main(String[] args) {
+		//createSessionBackwards();
+		//createFakeTickets();
 
         String lookAndFeel[] = {
                 "javax.swing.plaf.metal.MetalLookAndFeel",
@@ -148,7 +150,7 @@ public class CinemaGUI extends JFrame {
 				Movie movie = DatabaseManager.getRowById(Movie.class, session.getMovieId());
 				float rating = movie.getRating();
 				
-				float randFloat = rand.nextFloat(1);
+				float randFloat = rand.nextFloat();
 				int maxSeats = (int) ((1 - randFloat*randFloat) * (rating / 5 + 0.5) * seatAvList.size());
 				for (int i = 0; i < seatAvList.size() && i < maxSeats; i++) {
 					seatsToBook.add(seatAvList.get(i));
@@ -182,7 +184,7 @@ public class CinemaGUI extends JFrame {
 				
 						
 				for (ScreeningRoom screeningRoom : screeningRoomList) {
-					float randFloat = rand.nextFloat(1);
+					float randFloat = rand.nextFloat();
 					int movieIndex = (int) ((1 - randFloat * randFloat) * movieList.size());
 					
 					if (movieIndex < 0) {
