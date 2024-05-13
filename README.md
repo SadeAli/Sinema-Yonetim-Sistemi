@@ -5,7 +5,7 @@ ve yönetilebilmesi için hazırlanmış bir **İşlemsel Bilgi Sistemi**
 ## Kurulum
 ### Derlemek için
 ```
-javac -cp "dependencies/*" -d bin src/cinema/*.java src/database/*.java src/gui/*.java src/gui/mainPanels/*
+javac -cp "dependencies/*" -d bin src/cinema/*.java src/database/*.java src/gui/*.java src/gui/mainPanels/*.java src/gui/mainPanels/adminPanels/*.java src/gui/guiUtils/*.java
 ```
 ### Çalıştırmak için
 ```
