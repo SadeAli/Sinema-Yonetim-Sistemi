@@ -32,6 +32,11 @@ import database.DatabaseManager;
 import database.FilterCondition;
 import gui.CinemaGUI;
 
+/**
+ * Represents a panel for selling movie tickets.
+ * This panel contains multiple sub-panels for selecting movies, sessions, seats, and making payments.
+ * It allows the user to navigate through different stages of the ticket selling process.
+ */
 public class TicketSellingPanel extends JPanel {
 
     CardLayout cardLayout = new CardLayout();
@@ -102,7 +107,7 @@ public class TicketSellingPanel extends JPanel {
     }
 
     public void onVisible() {
-        movieSelectionPanel.onVisible();
+        movieSelectionPanel.applyFilter();
     }
 
     private class SessionSelectionPanel extends JPanel {

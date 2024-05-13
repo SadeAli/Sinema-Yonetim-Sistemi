@@ -123,6 +123,7 @@ public class MovieSelectionPanel extends JPanel {
             });
         }
 
+        // center panel for the movie banner to display the movie name, rating and release date
         private class CenterPanel extends JPanel {
             CenterPanel() {
                 setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
@@ -138,6 +139,7 @@ public class MovieSelectionPanel extends JPanel {
             }
         }
 
+        // left panel for the movie banner to display the movie poster
         private class LeftPanel extends JPanel {
             LeftPanel() {
                 JLabel imageLabel = new JLabel(new ImageIcon(image));
@@ -146,6 +148,7 @@ public class MovieSelectionPanel extends JPanel {
         }
     }
 
+    // method to repaint the movie panels
     public void reapintMoviePanels() {
         movieContainerPanel.removeAll();
 
@@ -158,10 +161,7 @@ public class MovieSelectionPanel extends JPanel {
         movieContainerPanel.repaint();
     }
 
-    public void onVisible() {
-        applyFilter();
-    }
-
+    // method to apply the filter
     public void applyFilter() {
         List<Session> sessions = new ArrayList<>();
         List<MovieGenre> movieGenres = new ArrayList<>();
@@ -197,6 +197,8 @@ public class MovieSelectionPanel extends JPanel {
             ex.printStackTrace();
         }
 
+        // filter movies by sessions
+        // remove movies that don't have any sessions
         List<Movie> availableMovies = new ArrayList<>();
         for (Movie movie : movieList) {
             for (Session session : sessions) {
@@ -212,6 +214,7 @@ public class MovieSelectionPanel extends JPanel {
 
         movieList = availableMovies;
 
+        // filter one more time by genres
         if (!selectedGenreList.isEmpty()) {
             availableMovies = new ArrayList<>();
             for (Movie movie : movieList) {
@@ -231,9 +234,14 @@ public class MovieSelectionPanel extends JPanel {
             movieList = availableMovies;
         }
 
+        // repaint the movie panels
         reapintMoviePanels();
     }
 
+    /**
+     * Represents a toolbar for movie selection in the Sinema Yonetim Sistemi application.
+     * This toolbar provides buttons for navigating back and applying filters to the movie selection.
+     */
     public class MovieSelectionToolbar extends JPanel {
 
         MovieSelectionToolbar() {
