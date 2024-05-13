@@ -188,44 +188,59 @@ public class ScreeningRoomManagementPanel extends JPanel {
     }
 
     private class DiscountPanel extends JPanel {
+
+        List<Discount> discountList = null;
+
         public DiscountPanel() {
-            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
             JLabel nameLabel = new JLabel("Discounts");
-            JPanel assignmentPanel = new JPanel();
-
-            assignmentPanel.setLayout(new BoxLayout(assignmentPanel, BoxLayout.X_AXIS));
 
             nameLabel.setToolTipText("Discounts");
 
-            assignmentPanel.add(nameLabel);
-            add(assignmentPanel);
+            add(nameLabel);
 
-            // get discounts
-            List<Discount> discountList = null;
+            listDiscounts();
+        }
+
+        public void listDiscounts() {
             try {
-                discountList = DatabaseManager.getAllRows(Discount.class);
+                discountList = DatabaseManager.getRowsFilteredAndSortedBy(Discount.class,
+                        List.of(new FilterCondition("date", LocalDate.now(),
+                                FilterCondition.Relation.GREATER_THAN_OR_EQUALS),
+                                new FilterCondition("date", LocalDate.now().plusDays(30),
+                                        FilterCondition.Relation.LESS_THAN)),
+                        "date", false);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            // create buttons for each discount
+            Discount discountArray[] = new Discount[30];
             for (Discount d : discountList) {
-                assignmentPanel.add(new DiscountButton(d));
+                discountArray[(int) (ChronoUnit.DAYS.between(LocalDate.now(), d.getDate()))] = d;
+            }
+
+            for (int i = 0; i < 30; i++) {
+                this.add(new DayDiscountButton(i, discountArray[i]));
             }
         }
 
-        private class DiscountButton extends JButton {
-            public DiscountButton(Discount discount) {
+        private class DayDiscountButton extends JButton {
+            public DayDiscountButton(int i, Discount discount) {
 
                 JButton button = new JButton();
 
-                button.setText(discount.getDate().toString());
+                button.setText(LocalDate.now().plusDays(i).getMonthValue() + "/"
+                        + LocalDate.now().plusDays(i).getDayOfMonth());
 
-                button.setToolTipText("" + discount.getRatio());
-
-                this.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+                if (discount != null) {
+                    button.setToolTipText("" + discount.getRatio());
+                    this.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+                } else {
+                    button.setToolTipText("Boş");
+                    this.setBorder(BorderFactory.createLineBorder(Color.gray, 2));
+                }
 
                 this.setSize(new Dimension(100, 100));
                 this.setMargin(new Insets(50, 50, 50, 50));
@@ -233,8 +248,22 @@ public class ScreeningRoomManagementPanel extends JPanel {
 
                 button.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
+                        try {
+                            String input = JOptionPane.showInputDialog("Enter a discount ratio for the day");
+                            if (input == null)
+                                return;
 
-                        // TODO: implement discount editing
+                            
+                            if (discount == null) {
+                                DatabaseManager.insertRow(new Discount(LocalDate.now().plusDays(i), Double.parseDouble(input)));
+                            } else {
+                                DatabaseManager.deleteRow(Discount.class, discount.getId());
+                            }
+
+                        } catch (Exception ex) {
+                            JOptionPane.showMessageDialog(null, "Invalid input");
+                            ex.printStackTrace();
+                        }
 
                         repaintDayMoviePanels();
                     }
@@ -246,19 +275,16 @@ public class ScreeningRoomManagementPanel extends JPanel {
     private class DayMoviePanel extends JPanel {
         public DayMoviePanel(ScreeningRoom screeningRoom) {
 
-            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
             JLabel nameLabel = new JLabel(String.format("%5s %-3s", "Room ", screeningRoom.getId()));
-            JPanel assignmentPanel = new JPanel();
-
-            assignmentPanel.setLayout(new BoxLayout(assignmentPanel, BoxLayout.X_AXIS));
+            // JPanel assignmentPanel = new JPanel();
 
             nameLabel.setToolTipText("Room " + screeningRoom.getId() + " - " + screeningRoom.getSeatRowCount()
                     + "x" + screeningRoom.getSeatColCount() + " koltuk");
 
-            assignmentPanel.add(nameLabel);
-            add(assignmentPanel);
+            this.add(nameLabel);
 
             // get sessions for the screening room
             List<Session> sessionList = null;
@@ -301,7 +327,7 @@ public class ScreeningRoomManagementPanel extends JPanel {
 
             // create buttons for each day
             for (int i = 0; i < 30; i++) {
-                assignmentPanel.add(new DayMovieButton(i, movieArray[i], screeningRoom));
+                this.add(new DayMovieButton(i, movieArray[i], screeningRoom));
             }
         }
 
