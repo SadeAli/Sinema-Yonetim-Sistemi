@@ -1,10 +1,12 @@
 package cinema;
 import database.*;
+
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Statement;
 import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.ArrayList;
@@ -197,11 +199,11 @@ public class Session {
 		}
 	}
 
-	private static boolean deleteUtil(int sessionId, Connection conn) {
+	public static boolean deleteFromDatabase(int sessionId, Connection conn) {
 		String query = "DELETE FROM session WHERE id = ?";
 		String querySeatAvailability = "DELETE FROM seat_availability WHERE session_id = ?";
-		String queryCheckTicket = "SELECT seat_availability.id FROM seat_availability"
-			+ " JOIN ticket ON seat_availability.ticket_id = ticket.id"
+		String queryCheckTicket = "SELECT ticket.id FROM ticket"
+			+ " JOIN seat_availability ON seat_availability.ticket_id = ticket.id"
 			+ " WHERE seat_availability.session_id = ?"
 			+ " LIMIT 1";
 
@@ -211,10 +213,16 @@ public class Session {
 		PreparedStatement psCheckTicket = null;
 
 		try {
-			psCheckTicket.setInt(1, sessionId);
+
 			psCheckTicket = conn.prepareStatement(queryCheckTicket);
+			
+			// Set the session id
+			psCheckTicket.setInt(1, sessionId);
+
+			// Check if there are tickets associated with this session
 			ResultSet rs = psCheckTicket.executeQuery();
-			if (rs.next()) {
+			
+			if (rs == null || rs.next()) {
 				throw new SQLException("Unable to delete session: there are tickets associated with this session");
 			}
 
@@ -231,45 +239,39 @@ public class Session {
 			System.err.println("Unable to delete session: " + e.getMessage());
 			return false;
 		} finally {
-			DatabaseManager.closeStatements(List.of(ps, psSeatAvailability, psCheckTicket));
+			List<Statement> statementList = new ArrayList<>();
+			statementList.add(ps);
+			statementList.add(psSeatAvailability);
+			statementList.add(psCheckTicket);
+			DatabaseManager.closeStatements(statementList);
 		}
 	}
 
-	public static boolean delete(int sessionId) {
+	public static boolean deleteFromDatabase(int sessionId) {
 		Connection conn = null;
 		try {
 			conn = DatabaseManager.getConnection();
-			conn.setAutoCommit(false);
 			
-			if (!deleteUtil(sessionId, conn)) {
+			DatabaseManager.setAutoCommit(conn, false);
+			
+			if (!deleteFromDatabase(sessionId, conn)) {
 				throw new SQLException("Unable to delete session");
 			}
 
-			conn.commit();
+			DatabaseManager.commit(conn);
+			
 			return true;
 		} catch (SQLException e) {
-			if (conn != null) {
-				try {
-					conn.rollback();
-				} catch (SQLException e1) {
-					System.err.println("Unable to rollback transaction: " + e1.getMessage());
-				}
-			}
+			DatabaseManager.rollback(conn);
 			System.err.println("Unable to delete session: " + e.getMessage());
 			return false;
 		} finally {
-			if (conn != null) {
-				try {
-					conn.setAutoCommit(true);
-				} catch (SQLException e) {
-					e.printStackTrace();
-				}
-			}
+			DatabaseManager.setAutoCommit(conn, true);
 			DatabaseManager.closeConnection(conn);
 		}
 	}
 
-	public static boolean delete(int sessionId, Connection conn) {
-		return deleteUtil(sessionId, conn);
+	public boolean deleteFromDatabase() {
+		return deleteFromDatabase(this.id);
 	}
 }

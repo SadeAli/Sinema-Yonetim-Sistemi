@@ -14,6 +14,7 @@ import java.util.Map;
 import javax.xml.crypto.Data;
 
 import database.*;
+import java.sql.Statement;
 
 @TableName("screening_room")
 public class ScreeningRoom {
@@ -242,7 +243,7 @@ public class ScreeningRoom {
 		PreparedStatement psSeat = null;
 
 		try {
-			if(!Session.delete(id, conn)) {
+			if(!Session.deleteFromDatabase(id, conn)) {
 				throw new SQLException("Unable to delete sessions");
 			}
 
@@ -261,7 +262,10 @@ public class ScreeningRoom {
 			e.printStackTrace();
 			return false;
 		} finally {
-			DatabaseManager.closeStatements(List.of(ps, psSeat));
+			List<Statement> sList = new ArrayList<>();
+			sList.add(ps);
+			sList.add(psSeat);
+			DatabaseManager.closeStatements(sList);
 		}
 	}
 
@@ -287,5 +291,65 @@ public class ScreeningRoom {
 			}
 			DatabaseManager.closeConnection(conn);
 		}
+	}
+
+	public static boolean deleteSessionsFromDate(int screeningRoomId, LocalDate date, Connection conn) {
+		try {
+			List<Session> sessionList = DatabaseManager.getRowsFilteredAndSortedBy(
+				Session.class,
+				List.of(new FilterCondition(
+						"screeningRoomId",
+						screeningRoomId,
+					FilterCondition.Relation.EQUALS),
+					new FilterCondition(
+						"date",
+						date,
+						FilterCondition.Relation.EQUALS)),
+				null,
+				false);
+
+			for (Session session : sessionList) {
+				if (!Session.deleteFromDatabase(session.getId(), conn)) {
+					throw new SQLException("Unable to delete session");
+				}
+			}
+			return true;
+		} catch (Exception e) {
+			System.err.println("Unable to delete sessions from date: " + e.getMessage());
+			e.printStackTrace();
+			return false;
+		}
+	}
+
+	public static boolean deleteSessionsFromDate(int screeningRoomId, LocalDate date) {
+		Connection conn = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			DatabaseManager.setAutoCommit(conn, false);
+			
+			if (!deleteSessionsFromDate(screeningRoomId, date, conn)) {
+				throw new SQLException("Unable to delete sessions");
+			}
+
+			if (!DatabaseManager.commit(conn)) {
+				throw new SQLException("Unable to commit");
+			}
+
+			return true;
+		} catch (SQLException e) {
+			DatabaseManager.rollback(conn);
+			System.err.println("Unable to delete sessions from date: " + e.getMessage());
+			e.printStackTrace();
+			return false;
+		} finally {
+			if (!DatabaseManager.setAutoCommit(conn, true)) {
+				System.err.println("Unable to set auto commit to true");
+			}
+			DatabaseManager.closeConnection(conn);
+		}
+	}
+
+	public boolean deleteSessionsFromDate(LocalDate date) {
+		return deleteSessionsFromDate(this.id, date);
 	}
 }

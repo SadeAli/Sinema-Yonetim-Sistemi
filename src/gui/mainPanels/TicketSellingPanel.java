@@ -21,6 +21,7 @@ import javax.swing.SpinnerDateModel;
 import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 
+import cinema.Discount;
 import cinema.Movie;
 import cinema.ScreeningRoom;
 import cinema.Seat;
@@ -48,6 +49,7 @@ public class TicketSellingPanel extends JPanel {
     LocalDate selectedDate;
     List<SeatAvailability> selectedSeats = new ArrayList<>();
     Double defaultPrice = 70.0;
+    double totalPrice = 0.0;
     Ticket ticket;
 
     public TicketSellingPanel(CinemaGUI parent, int width, int height) {
@@ -65,6 +67,12 @@ public class TicketSellingPanel extends JPanel {
         add("Payment", paymentPanel);
 
         cardLayout.show(this, "Movie");
+    }
+    
+    public void reloadPaymentPanel() {
+        remove(paymentPanel);
+        paymentPanel = new PaymentPanel();
+        add("Payment", paymentPanel);
     }
 
     public void showMainMenu() {
@@ -183,7 +191,6 @@ public class TicketSellingPanel extends JPanel {
         }
 
         public void listSeats(Session session) {
-            selectedSeats.clear();
             seatPanel.removeAll();
 
             ScreeningRoom room = getScreeningRoomFromSession(selectedSession);
@@ -229,13 +236,30 @@ public class TicketSellingPanel extends JPanel {
                         return;
                     }
 
-                    ticket = SeatAvailability.bookSeatList(selectedSeats, defaultPrice * selectedSeats.size());
+                    double discountRatio = 0.0;
+
+                    try {
+                        List<Discount> dl = DatabaseManager.getRowsFilteredAndSortedBy(Discount.class, List.of(
+                            new FilterCondition("date", selectedDate, FilterCondition.Relation.EQUALS)
+                        ), "id", true);
+
+                        if (dl.size() > 0) {
+                            discountRatio = dl.get(0).getRatio();
+                        }
+                        
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                    totalPrice = defaultPrice * selectedSeats.size() * (1 - discountRatio);
+                    ticket = SeatAvailability.bookSeatList(selectedSeats, totalPrice);
 
                     if (ticket == null) {
                         JOptionPane.showMessageDialog(this, "Failed to book the seats.");
                         return;
                     }
 
+                    reloadPaymentPanel();
                     cardLayout.show(this.getParent().getParent(), "Payment");
                 });
             }
@@ -318,7 +342,14 @@ public class TicketSellingPanel extends JPanel {
             cvvField.setMaximumSize(new Dimension(60, 30));
             expiryDateSpinner.setMaximumSize(new Dimension(200, 30));
 
+            // selection info
+            JLabel selectionInfo = new JLabel("Seats selected: " + selectedSeats.size(), JLabel.CENTER);
+            JLabel priceInfo = new JLabel(" Price: " + totalPrice + " TL", JLabel.CENTER);
+
             // add center panel components
+            paymentInfoPanel.add(selectionInfo);
+            paymentInfoPanel.add(priceInfo);
+            
             paymentInfoPanel.add(new JLabel("Name:"));
             paymentInfoPanel.add(nameField);
             paymentInfoPanel.add(new JLabel("Surname:"));
@@ -384,6 +415,7 @@ public class TicketSellingPanel extends JPanel {
                         "Payment successful!" + "\n" + "Your ticket code is: " + ticket.getCode() + "\n");
 
                 ticket = null;
+                selectedSeats.clear();
 
                 showMainMenu();
             });
