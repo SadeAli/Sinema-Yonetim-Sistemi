@@ -1,8 +1,10 @@
 package gui.mainPanels;
 
+import javax.imageio.ImageIO;
 import javax.swing.BorderFactory;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
+import javax.swing.ImageIcon;
 import javax.swing.JButton;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
@@ -28,9 +30,12 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
+import java.awt.Graphics;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.nio.Buffer;
 import java.sql.SQLException;
 
 import java.time.LocalDate;
@@ -86,32 +91,55 @@ public class MovieSelectionPanel extends JPanel {
     }
 
     private class MovieBanner extends JPanel {
+
+        BufferedImage image;
+
         public MovieBanner(Movie movie) {
+            this.setLayout(new BorderLayout());
+
             // colors and borders
             setBackground(Color.WHITE);
             setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
             // size
-            setPreferredSize(new Dimension(0, 200));
-            setMaximumSize(new Dimension(5000, 200));
+            setPreferredSize(new Dimension(0, 300));
+            setMaximumSize(new Dimension(5000, 300));
 
-            // content
-            JLabel movieName = new JLabel(movie.getName());
-            JLabel movieRating = new JLabel("Rating: " + movie.getRating());
-            JLabel movieRelease = new JLabel("Release: " + movie.getReleaseDate().toString());
+            try {
+                image = ImageIO.read(new File("data/pictures/" + movie.getId() + ".jpg"));
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
 
-            // layout
-            add(movieName);
-            add(movieRating);
-            add(movieRelease);
+            add(new LeftPanel(), BorderLayout.WEST);
+            add(new CenterPanel(), BorderLayout.CENTER);
 
             // actions
             addMouseListener(new MouseAdapter() {
-            @Override
+                @Override
                 public void mouseClicked(MouseEvent e) {
                     parent.selectMovie(movie, dateQuery);
+                }
+            });
+        }
+
+        private class CenterPanel extends JPanel {
+            CenterPanel() {
+                JLabel movieName = new JLabel("Movie Name");
+                JLabel movieRating = new JLabel("Rating: 5.0");
+                JLabel movieRelease = new JLabel("Release: 01/01/2021");
+
+                add(movieName);
+                add(movieRating);
+                add(movieRelease);
             }
-        });
+        }
+
+        private class LeftPanel extends JPanel {
+            LeftPanel() {
+                JLabel imageLabel = new JLabel(new ImageIcon(image));
+                add(imageLabel);
+            }
         }
     }
 
@@ -140,7 +168,7 @@ public class MovieSelectionPanel extends JPanel {
                 List<MovieGenre> tmp = DatabaseManager
                         .getRowsFilteredAndSortedBy(MovieGenre.class,
                                 List.of(new FilterCondition("genreId", genre.getId(), Relation.EQUALS)), "id", true);
-                                
+
                 if (!tmp.isEmpty()) {
                     movieGenres.add(tmp.get(0));
                 }
