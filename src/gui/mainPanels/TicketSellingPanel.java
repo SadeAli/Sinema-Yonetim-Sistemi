@@ -77,8 +77,8 @@ public class TicketSellingPanel extends JPanel {
     public void selectMovie(Movie movie, LocalDate date) {
         selectedMovie = movie;
         selectedDate = date;
-        cardLayout.show(this, "Session");
         sessionSelectionPanel.listSessions(movie, date);
+        cardLayout.show(this, "Session");
     }
 
     public void deselectMovie() {
@@ -100,6 +100,7 @@ public class TicketSellingPanel extends JPanel {
     private class SessionSelectionPanel extends JPanel {
         JLabel movieName;
         JLabel date;
+        JScrollPane scrollPane = new JScrollPane();
 
         List<Session> sessionsAvailable;
 
@@ -127,7 +128,7 @@ public class TicketSellingPanel extends JPanel {
 
             try {
                 List<FilterCondition> conditions = List.of(
-                        new FilterCondition("movieId", selectedMovie.getId(), FilterCondition.Relation.EQUALS),
+                        new FilterCondition("movieId", movie.getId(), FilterCondition.Relation.EQUALS),
                         new FilterCondition("date", date, FilterCondition.Relation.EQUALS));
                 sessionsAvailable = DatabaseManager.getRowsFilteredAndSortedBy(Session.class, conditions, "startTime",
                         true);
@@ -137,7 +138,7 @@ public class TicketSellingPanel extends JPanel {
 
             JPanel sessionPanel = new JPanel();
             sessionPanel.setLayout(new GridLayout(0, 3));
-            JScrollPane scrollPane = new JScrollPane(sessionPanel);
+            scrollPane.setViewportView(sessionPanel);
             add(scrollPane, BorderLayout.CENTER);
 
             for (Session session : sessionsAvailable) {
