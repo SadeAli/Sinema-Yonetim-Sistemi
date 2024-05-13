@@ -95,7 +95,7 @@ public class AdminPanel extends JPanel {
             MovieComboBox movieCombobox = new MovieComboBox();
             
             // here is your panel
-            JPanel centerPanel = new OmerPanel(selectedMovie);
+            JPanel centerPanel = new CustomChartPanel(selectedMovie);
 
             List<Movie> movies = Movie.getAllMovies();
             selectedMovie = movies.get(0);
@@ -109,7 +109,7 @@ public class AdminPanel extends JPanel {
             movieCombobox.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     selectedMovie = (Movie) movieCombobox.getSelectedItem();
-					((OmerPanel) centerPanel).updateDataset(selectedMovie);
+					((CustomChartPanel) centerPanel).updateDataset(selectedMovie);
                     centerPanel.repaint();
                 }
             });
@@ -129,14 +129,14 @@ public class AdminPanel extends JPanel {
         }
     }
 
-    private class OmerPanel extends JPanel {
+    private class CustomChartPanel extends JPanel {
 		DefaultCategoryDataset dataset1 = new DefaultCategoryDataset();
 		CategoryItemRenderer renderer1 = new LineAndShapeRenderer();
 
 		DefaultCategoryDataset dataset2 = new DefaultCategoryDataset();
 		CategoryItemRenderer renderer2 = new LineAndShapeRenderer();
         
-		public OmerPanel(Movie movie) {
+		public CustomChartPanel(Movie movie) {
 			movie = Movie.getAllMovies().get(0);
 
 			// Create a line chart
