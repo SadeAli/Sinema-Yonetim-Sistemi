@@ -68,6 +68,12 @@ public class TicketSellingPanel extends JPanel {
 
         cardLayout.show(this, "Movie");
     }
+    
+    public void reloadPaymentPanel() {
+        remove(paymentPanel);
+        paymentPanel = new PaymentPanel();
+        add("Payment", paymentPanel);
+    }
 
     public void showMainMenu() {
         cardLayout.show(this, "Movie");
@@ -245,7 +251,7 @@ public class TicketSellingPanel extends JPanel {
                         ex.printStackTrace();
                     }
 
-                    double totalPrice = defaultPrice * selectedSeats.size() * (1 - discountRatio);
+                    totalPrice = defaultPrice * selectedSeats.size() * (1 - discountRatio);
                     JOptionPane.showMessageDialog(this, "Total price: " + totalPrice + " TL", "Total Price", JOptionPane.INFORMATION_MESSAGE);
                     ticket = SeatAvailability.bookSeatList(selectedSeats, totalPrice);
 
@@ -254,7 +260,7 @@ public class TicketSellingPanel extends JPanel {
                         return;
                     }
 
-                    paymentPanel = new PaymentPanel();
+                    reloadPaymentPanel();
                     cardLayout.show(this.getParent().getParent(), "Payment");
                 });
             }
