@@ -1,3 +1,11 @@
+/**
+ * This class represents the Movie Management Panel in the GUI.
+ * It allows the user to view, add, and remove movies from the system.
+ * The panel displays a table with movie information and provides options to edit and delete movies.
+ * Movies are retrieved from the database and displayed in the table.
+ * The user can enable edit mode to modify movie details.
+ * The panel also includes buttons to add and remove movies.
+ */
 package gui.mainPanels.adminPanels;
 
 import java.awt.BorderLayout;
@@ -35,6 +43,19 @@ import database.DatabaseManager;
 import gui.guiUtils.DateSpinner;
 import gui.mainPanels.adminPanels.MovieManagementPanel;
 
+/**
+ * The MovieManagementPanel class represents a panel for managing movies in a
+ * cinema management system.
+ * It provides functionality for adding and removing movies, as well as enabling
+ * edit mode for movie editing.
+ * The panel consists of a table displaying the movies, checkboxes for enabling
+ * edit mode, and buttons for adding and removing movies.
+ * 
+ * This class extends the JPanel class and implements various action listeners
+ * for handling user interactions.
+ * 
+ * @see JPanel
+ */
 public class MovieManagementPanel extends JPanel {
     List<Movie> movieList = Movie.getAllMovies();
     JTable movieTable = new JTable(new MovieTableModel(movieList));
@@ -45,6 +66,7 @@ public class MovieManagementPanel extends JPanel {
     public MovieManagementPanel() {
         setLayout(new BorderLayout());
 
+        // main components
         JPanel northPanel = new JPanel(new BorderLayout());
         JScrollPane scrollPane = new JScrollPane(movieTable);
         JPanel southPanel = new JPanel();
@@ -57,8 +79,8 @@ public class MovieManagementPanel extends JPanel {
 
         // southPanel components
         JButton removeButton = new JButton("Remove");
-        JButton addButton = new JButton("Add");       
-        
+        JButton addButton = new JButton("Add");
+
         southPanel.add(addButton);
         southPanel.add(removeButton);
 
@@ -69,6 +91,9 @@ public class MovieManagementPanel extends JPanel {
 
         updateMovieTable();
 
+        // action listeners
+
+        // enable disable edit mode
         checkBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
                 if (checkBox.isSelected()) {
@@ -79,6 +104,7 @@ public class MovieManagementPanel extends JPanel {
             }
         });
 
+        // update table when focus is gained
         this.addFocusListener(new FocusListener() {
             public void focusGained(FocusEvent e) {
                 updateMovieTable();
@@ -88,26 +114,30 @@ public class MovieManagementPanel extends JPanel {
             }
         });
 
+        // add and remove movie
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                // check if edit mode is enabled
                 if (editMode == false) {
                     JOptionPane.showMessageDialog(null, "Please enable edit mode to remove a movie", "Error",
                             JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                
+
                 new AddPopup();
             }
         });
-        
+
         removeButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
+                // check if edit mode is enabled
                 if (editMode == false) {
                     JOptionPane.showMessageDialog(null, "Please enable edit mode to remove a movie", "Error",
                             JOptionPane.ERROR_MESSAGE);
                     return;
                 }
-                
+
+                // confirm delete
                 if (selectedMovie != null) {
                     int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete this movie?",
                             "Delete Movie", JOptionPane.YES_NO_OPTION);
@@ -120,15 +150,21 @@ public class MovieManagementPanel extends JPanel {
                         updateMovieList();
                         updateMovieTable();
                     }
-                } 
+                }
             }
-        });         
+        });
     }
 
+    /**
+     * Updates the movie list by retrieving all movies from the database.
+     */
     public void updateMovieList() {
         movieList = Movie.getAllMovies();
     }
 
+    /**
+     * Updates the movie table with the current movie list.
+     */
     public void updateMovieTable() {
         movieTable.setModel(new MovieTableModel(movieList));
 
@@ -141,15 +177,6 @@ public class MovieManagementPanel extends JPanel {
             public void mouseClicked(MouseEvent e) {
                 int row = movieTable.getSelectedRow();
                 if (row >= 0 && row < movieList.size()) {
-                    // Handle row selection
-                }
-            }
-        });
-
-        movieTable.addMouseListener(new MouseAdapter() {
-            public void mouseClicked(MouseEvent e) {
-                int row = movieTable.getSelectedRow();
-                if (row >= 0 && row < movieList.size()) {
                     selectedMovie = movieList.get(row);
                     label.setText("selected: " + selectedMovie.getName());
                 }
@@ -157,6 +184,9 @@ public class MovieManagementPanel extends JPanel {
         });
     }
 
+    /**
+     * A custom cell editor for editing date values in the movie table.
+     */
     private class DateCellEditor extends DefaultCellEditor {
         SpinnerDateModel dateModel = new SpinnerDateModel();
         JSpinner dateSpinner = new JSpinner(dateModel);
@@ -181,6 +211,8 @@ public class MovieManagementPanel extends JPanel {
             };
         }
 
+
+        @Override
         public Component getTableCellEditorComponent(JTable table, Object value, boolean isSelected, int row,
                 int column) {
             if (value instanceof LocalDate) {
@@ -190,12 +222,16 @@ public class MovieManagementPanel extends JPanel {
             return editorComponent;
         }
 
+        @Override
         public Object getCellEditorValue() {
             return ((java.util.Date) editor.getModel().getValue()).toInstant().atZone(ZoneId.systemDefault())
                     .toLocalDate();
         }
     }
 
+    /**
+     * A custom table model for displaying movie information in the movie table.
+     */
     private class MovieTableModel extends AbstractTableModel {
         private List<Movie> movieList;
         private String[] columnNames = { "Name", "Duration", "releaseDate", "lastScreeningDate", "rating",
@@ -208,6 +244,7 @@ public class MovieManagementPanel extends JPanel {
 
         }
 
+        @Override
         public Object getValueAt(int row, int col) {
             Movie movie = movieList.get(row);
 
@@ -229,26 +266,32 @@ public class MovieManagementPanel extends JPanel {
             }
         }
 
+        @Override
         public int getColumnCount() {
             return columnNames.length;
         }
 
+        @Override
         public int getRowCount() {
             return movieList.size();
         }
 
+        @Override
         public String getColumnName(int col) {
             return columnNames[col];
         }
 
+        @Override
         public Class<?> getColumnClass(int c) {
             return getValueAt(0, c).getClass();
         }
 
+        @Override
         public boolean isCellEditable(int row, int col) {
             return editMode && editables[col];
         }
 
+        @Override
         public void setValueAt(Object value, int row, int col) {
 
             Movie movie = movieList.get(row);
@@ -258,7 +301,7 @@ public class MovieManagementPanel extends JPanel {
                     movie.setName((String) value);
                     break;
                 case 1:
-                    movie.setDuration((int)value);
+                    movie.setDuration((int) value);
                     break;
                 case 2:
                     movie.setLastScreeningDate((LocalDate) value);
@@ -270,7 +313,7 @@ public class MovieManagementPanel extends JPanel {
                     movie.setRating((float) value);
                     break;
                 case 5:
-                    movie.setRatingCount((int)value);
+                    movie.setRatingCount((int) value);
                     break;
                 default:
                     break;
@@ -288,6 +331,9 @@ public class MovieManagementPanel extends JPanel {
         }
     }
 
+    /**
+     * A custom popup dialog for adding a new movie to the system.
+     */
     private class AddPopup extends JDialog {
         public AddPopup() {
             setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
@@ -331,6 +377,16 @@ public class MovieManagementPanel extends JPanel {
 
             pack();
 
+            // action listeners
+            
+            // close popup
+            cancelButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    dispose();
+                }
+            });
+
+            // add movie to database
             addButton.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     String name = nameField.getText();

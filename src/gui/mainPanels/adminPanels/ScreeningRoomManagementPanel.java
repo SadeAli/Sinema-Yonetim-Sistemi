@@ -33,6 +33,17 @@ import cinema.Session;
 import database.DatabaseManager;
 import database.FilterCondition;
 
+/**
+ * The `ScreeningRoomManagementPanel` class represents a panel that manages the screening rooms in a cinema.
+ * It allows adding and removing screening rooms, as well as displaying the movies scheduled for each screening room.
+ * 
+ * This panel consists of a main panel that displays the day movie panels for each screening room,
+ * a south panel that contains management options for adding and removing screening rooms,
+ * and a movie combo box at the top for selecting a movie to adding to the schedule.
+ * 
+ * The `ScreeningRoomManagementPanel` class extends the `JPanel` class and implements the necessary functionality
+ * to manage the screening rooms and display the movie schedule.
+ */
 public class ScreeningRoomManagementPanel extends JPanel {
     private List<ScreeningRoom> screeningRooms;
 

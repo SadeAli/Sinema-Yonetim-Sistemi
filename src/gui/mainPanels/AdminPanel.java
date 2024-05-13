@@ -1,3 +1,13 @@
+/**
+ * This class represents the Admin Panel of the cinema management system.
+ * It extends the JPanel class and provides functionality for managing screening rooms, movies, and statistics.
+ * The Admin Panel contains a toolbar with a back button and a label, and a tabbed pane with three panels:
+ * - ScreeningRoomManagementPanel: Allows the user to manage screening rooms.
+ * - MovieManagementPanel: Allows the user to manage movies.
+ * - StatisticsPanel: Displays statistics about movie sales and occupancy ratio.
+ * 
+ * The Admin Panel is used in the CinemaGUI class to display the admin interface.
+ */
 package gui.mainPanels;
 
 import java.awt.BorderLayout;
@@ -32,6 +42,12 @@ import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
 
+
+/**
+ * Represents the admin panel of the cinema management system.
+ * This panel provides various management functionalities for the admin user.
+ * It includes tabs for managing screening rooms, movies, and statistics.
+ */
 public class AdminPanel extends JPanel {
 
     List<ScreeningRoom> screeningRooms = ScreeningRoom.getAllScreeningRooms();
@@ -86,7 +102,6 @@ public class AdminPanel extends JPanel {
 
             MovieComboBox movieCombobox = new MovieComboBox();
             
-            // here is your panel
             JPanel centerPanel = new CustomChartPanel(selectedMovie);
 
             List<Movie> movies = Movie.getAllMovies();

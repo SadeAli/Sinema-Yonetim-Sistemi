@@ -63,12 +63,13 @@ public class MovieRatingPanel extends JPanel {
             ratingBox.add(ratingButtons[i]);
         }
 
+        // a panel for the submit and back buttons
         JPanel buttonPanel = new JPanel();
         submitButton = new JButton("Submit");
         backButton = new JButton("Back");
 
+        // place the buttons in the panel
         buttonPanel.setLayout(new BorderLayout());
-
         buttonPanel.add(submitButton, BorderLayout.EAST);
         buttonPanel.add(backButton, BorderLayout.WEST);
 
@@ -76,6 +77,9 @@ public class MovieRatingPanel extends JPanel {
         add(ratingBox);
         add(buttonPanel);
 
+        // add action and focus listeners
+
+        // add focus listener to the ticket number field
         ticketNumberField.addFocusListener(new FocusAdapter() {
             @Override
             public void focusGained(FocusEvent e) {
@@ -92,6 +96,7 @@ public class MovieRatingPanel extends JPanel {
             }
         });
 
+        // add action listeners to the rating buttons
         for (int i = 0; i < 5; i++) {
             ratingButtons[i].addActionListener(new ActionListener() {
                 @Override
@@ -113,14 +118,17 @@ public class MovieRatingPanel extends JPanel {
             });
         }
 
+        // add action listeners to the submit and back buttons
         submitButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
+                // check if a rating is selected
                 if (rating == 0) {
                     JOptionPane.showMessageDialog(parent, "Please select a rating!");
                     return;
                 }
 
+                // get the ticket number from the text field
                 String ticketNumber = ticketNumberField.getText();
                 try {
                     int ticketCode = Integer.parseInt(ticketNumber);
@@ -140,6 +148,7 @@ public class MovieRatingPanel extends JPanel {
             }
         });
 
+        // add action listener to the back button
         backButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
