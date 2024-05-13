@@ -234,4 +234,58 @@ public class ScreeningRoom {
 		}
 	}
 
+	public static boolean deleteFromDatabase(int id, Connection conn) {
+		String query = "DELETE FROM screening_room WHERE id = ?";
+		String querySeat = "DELETE FROM seat WHERE screening_room_id = ?";
+
+		PreparedStatement ps = null;
+		PreparedStatement psSeat = null;
+
+		try {
+			if(!Session.delete(id, conn)) {
+				throw new SQLException("Unable to delete sessions");
+			}
+
+			psSeat = conn.prepareStatement(querySeat);
+			psSeat.setInt(1, id);
+			psSeat.executeUpdate();
+
+			ps = conn.prepareStatement(query);
+			ps.setInt(1, id);
+			ps.executeUpdate();
+
+
+			return true;
+		} catch (SQLException e) {
+			System.err.println("Unable to delete screening room: " + e.getMessage());
+			e.printStackTrace();
+			return false;
+		} finally {
+			DatabaseManager.closeStatements(List.of(ps, psSeat));
+		}
+	}
+
+	public static boolean deleteFromDatabase(int id) {
+		Connection conn = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			conn.setAutoCommit(false);
+			
+			if (!deleteFromDatabase(id, conn)) {
+				throw new SQLException("Unable to delete screening room");
+			}
+
+			conn.commit();
+			return true;
+		} catch (SQLException e) {
+			System.err.println("Unable to delete screening room: " + e.getMessage());
+			e.printStackTrace();
+			return false;
+		} finally {
+			if (!DatabaseManager.setAutoCommit(conn, true)) {
+				System.err.println("Unable to set auto commit to true");
+			}
+			DatabaseManager.closeConnection(conn);
+		}
+	}
 }
