@@ -195,7 +195,7 @@ public class MovieManagementPanel extends JPanel {
         private List<Movie> movieList;
         private String[] columnNames = { "Name", "Duration", "releaseDate", "lastScreeningDate", "rating",
                 "ratingCount" };
-        private Boolean[] editables = { true, true, true, true, true, false };
+        private Boolean[] editables = { true, true, true, true, true, true };
 
         public MovieTableModel(List<Movie> movieList) {
             super();
