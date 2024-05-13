@@ -243,7 +243,7 @@ public class ScreeningRoom {
 		PreparedStatement psSeat = null;
 
 		try {
-			if(!Session.deleteFromDatabase(id, conn)) {
+			if (!Session.deleteSessionsWithScreeningRoomId(id, conn)) {
 				throw new SQLException("Unable to delete sessions");
 			}
 
