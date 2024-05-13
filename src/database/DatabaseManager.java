@@ -43,6 +43,34 @@ public class DatabaseManager {
 		}
 	}
 
+	public static boolean rollback(Connection connection) {
+		if (connection != null) {
+			try {
+				connection.rollback();
+				return true;
+			} catch (SQLException e) {
+				System.err.println("Unable to rollback: " + e.getMessage());
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	public static boolean commit(Connection connection) {
+		if (connection != null) {
+			try {
+				connection.commit();
+				return true;
+			} catch (SQLException e) {
+				System.err.println("Unable to commit: " + e.getMessage());
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
 	/**
 	 * Retrieves all rows from the database table associated with the given class.
 	 * 
