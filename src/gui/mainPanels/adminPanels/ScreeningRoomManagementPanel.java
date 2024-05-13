@@ -378,19 +378,18 @@ public class ScreeningRoomManagementPanel extends JPanel {
                                 }
                             }
 
-                            System.out.println("deleted movie from date " + LocalDate.now().plusDays(index));
-
                             repaintDayMoviePanels();
                             return;
                         }
 
                         if (screeningRoom.addMovieToDate(LocalDate.now().plusDays(index),
                                 selectedMovie.getId()))
-                            System.out.println("added movie " + selectedMovie.getId() + " to date "
+                            JOptionPane.showMessageDialog(null, "added movie " + selectedMovie.getId() + " to date "
                                     + LocalDate.now().plusDays(index));
                         else
-                            System.out.println("unable to add movie " + selectedMovie.getId() + " to date "
-                                    + LocalDate.now().plusDays(index));
+                            JOptionPane.showMessageDialog(null,
+                                    "unable to add movie " + selectedMovie.getId() + " to date "
+                                            + LocalDate.now().plusDays(index));
                         repaintDayMoviePanels();
                     }
                 });

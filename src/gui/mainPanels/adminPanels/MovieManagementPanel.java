@@ -263,7 +263,6 @@ public class MovieManagementPanel extends JPanel {
                     break;
                 case 2:
                     movie.setLastScreeningDate((LocalDate) value);
-                    System.out.println("release date: " + value);
                     break;
                 case 3:
                     movie.setLastScreeningDate((LocalDate) value);
@@ -279,7 +278,9 @@ public class MovieManagementPanel extends JPanel {
             }
 
             try {
-                System.out.println(DatabaseManager.updateRow(movie));
+                if (DatabaseManager.updateRow(movie) == false) {
+                    JOptionPane.showMessageDialog(null, "Error updating movie", "Error", JOptionPane.ERROR_MESSAGE);
+                }
             } catch (Exception ex) {
                 ex.printStackTrace();
             }
