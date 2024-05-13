@@ -5,6 +5,8 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import javax.swing.JButton;
@@ -27,6 +29,14 @@ import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.CategoryPlot;
+import org.jfree.chart.renderer.category.CategoryItemRenderer;
+import org.jfree.chart.renderer.category.LineAndShapeRenderer;
+import org.jfree.data.category.DefaultCategoryDataset;
+import org.jfree.chart.axis.NumberAxis;
+import org.jfree.chart.axis.CategoryAxis;
+import org.jfree.chart.axis.CategoryLabelPositions;
 
 public class AdminPanel extends JPanel {
 
@@ -120,7 +130,11 @@ public class AdminPanel extends JPanel {
     }
 
     private class OmerPanel extends JPanel {
-		private DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+		DefaultCategoryDataset dataset1 = new DefaultCategoryDataset();
+		CategoryItemRenderer renderer1 = new LineAndShapeRenderer();
+
+		DefaultCategoryDataset dataset2 = new DefaultCategoryDataset();
+		CategoryItemRenderer renderer2 = new LineAndShapeRenderer();
         
 		public OmerPanel(Movie movie) {
 			movie = Movie.getAllMovies().get(0);
@@ -129,20 +143,37 @@ public class AdminPanel extends JPanel {
 			
 			updateDataset(movie);
 
+			// Create the plot
+			CategoryPlot plot = new CategoryPlot();
+			plot.setDataset(0, dataset1);
+			plot.setRenderer(0, renderer1);
+			plot.setRangeAxis(0, new NumberAxis("Seats"));
 
+			CategoryAxis domainAxis = new CategoryAxis("Date");
+			domainAxis.setCategoryLabelPositions(CategoryLabelPositions.UP_45);
+			plot.setDomainAxis(domainAxis);
+
+			plot.setDataset(1, dataset2);
+			plot.setRenderer(1, renderer2);
+			plot.setRangeAxis(1, new NumberAxis("Ratio"));
+
+			/*
 			JFreeChart lineChart = ChartFactory.createLineChart(
 				"Selled Seats per Day", // Chart title
 				"Day", // X-axis label
 				"Number of Seats", // Y-axis label
-				dataset, // Dataset
+				dataset1, // Dataset
 				PlotOrientation.VERTICAL, // Plot orientation
 				true, // Show legend
 				true, // Use tooltips
 				false // Configure chart to generate URLs?
 			);
+*/
+			// Create the chart with the plot
+			JFreeChart chart = new JFreeChart(plot);
 
 			// Create a chart panel and add it to the OmerPanel
-			ChartPanel chartPanel = new ChartPanel(lineChart);
+			ChartPanel chartPanel = new ChartPanel(chart);
 			chartPanel.setPreferredSize(new Dimension(900, 500));
 
 			this.add(chartPanel);
@@ -150,15 +181,40 @@ public class AdminPanel extends JPanel {
 		
 		public void updateDataset(Movie movie) {
 			// Clear the existing dataset
-			dataset.clear();
-			// TODO: add new series as selling rate per seat
-		
+			dataset1.clear();
+
+			List<Integer> assignedList = movie.getAssignedSeatCountListForLast30Days();
+			
+			// Find the maximum value of the dataset
+			int maxAssigned = Collections.max(assignedList);
+
 			// Populate the dataset with new values
 			for (int i = 0; i < 30; i++) {
-				LocalDate date = LocalDate.now().minusDays(30 - i);
-				dataset.addValue(Movie.getSales(movie.getId(), date), 
-					movie.getName(),
-					date.format(DateTimeFormatter.ofPattern("dd/MM")));
+				LocalDate date = LocalDate.now().minusDays(29 - i);
+				String dateStr = date.format(DateTimeFormatter.ofPattern("dd/MM"));
+				int sales = Movie.getSales(movie.getId(), date);
+				int assigned = assignedList.get(i);
+
+				double normalizedValue = 0.0;
+
+				if (assigned != 0) {
+					normalizedValue = ((double)sales / assigned) * maxAssigned;
+				}
+				
+				// Add the number of selled and assigned seats for the given date
+				dataset1.addValue(
+					sales, 
+					"Sold Seats",
+					dateStr
+				);
+				
+				dataset1.addValue(
+					assigned,
+					"Assigned Seats",
+					dateStr
+				);
+
+				dataset1.addValue(normalizedValue, "Occupancy Ratio", dateStr);
 			}
 		}
     }

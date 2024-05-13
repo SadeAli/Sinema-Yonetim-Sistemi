@@ -370,6 +370,77 @@ public class Movie {
 	
 	}
 
+	public static int getAssignedSeatCount(int movieId, LocalDate date, Connection conn){
+		String sql = "SELECT COUNT(*)"
+		+ " FROM seat_availability"
+		+ " JOIN session ON seat_availability.session_id = session.id"
+		+ " JOIN movie ON session.movie_id = movie.id"
+		+ " WHERE movie.id = ? AND session.date = ?";
+
+		PreparedStatement ps = null;
+
+		if (conn == null || date == null || movieId <= 0) {
+			throw new IllegalArgumentException("Invalid arguments");
+		}
+
+		try {
+			ps = conn.prepareStatement(sql);
+
+			// Set the parameters
+			ps.setInt(1, movieId);
+			ps.setString(2, date.format(DateTimeFormatter.ofPattern("yyyy-MM-dd")));
+			ps.execute();
+
+			ResultSet rs = ps.executeQuery();
+
+			if (rs.next()) {
+				return rs.getInt(1);
+			} else {
+				return 0;
+			}
+			
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		} finally {
+			DatabaseManager.closeStatements(List.of(ps));
+		}
+
+	}
+
+	public static int getAssignedSeatCount (int movieId, LocalDate date) {
+
+		Connection conn = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			return getAssignedSeatCount(movieId, date, conn);
+		} catch (Exception e) {
+			e.printStackTrace();
+			return 0;
+		} finally {
+			DatabaseManager.closeConnection(conn);
+		}
+	}
+
+	public int getAssignedSeatCount(LocalDate date) {
+		return getAssignedSeatCount(this.id, date);
+	}
+
+	public static List<Integer> getAssignedSeatCountListForLast30Days (int movieId) {
+		List<Integer> assignedSeatCountList = new ArrayList<>();
+
+		LocalDate currentDate = LocalDate.now();
+		for (int i = 29; i >= 0; i--) {
+			assignedSeatCountList.add(getAssignedSeatCount(movieId, currentDate.minusDays(i)));
+		}
+
+		return assignedSeatCountList;
+	}
+
+	public List<Integer> getAssignedSeatCountListForLast30Days() {
+		return getAssignedSeatCountListForLast30Days(this.id);
+	}
+
 	// Method to check if a movie is currently showing
 	public boolean isCurrentlyShowing() {
 		return LocalDate.now().isBefore(lastScreeningDate) && LocalDate.now().isAfter(releaseDate);
