@@ -215,7 +215,7 @@ public class MovieSelectionPanel extends JPanel {
             add(filterButton, BorderLayout.EAST);
 
             backButton.addActionListener(e -> {
-                parent.goBack();
+                parent.showMainMenu();
             });
 
             JDialog filterWindow = new FilterPopup();

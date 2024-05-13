@@ -67,7 +67,8 @@ public class TicketSellingPanel extends JPanel {
         cardLayout.show(this, "Movie");
     }
 
-    public void goBack() {
+    public void showMainMenu() {
+        cardLayout.show(this, "Movie");
         parent.showMainMenu();
     }
 
@@ -364,7 +365,9 @@ public class TicketSellingPanel extends JPanel {
             // add action listeners to buttons
             backButton.addActionListener(e -> {
                 cardLayout.show(TicketSellingPanel.this, "Seat");
-                Ticket.cancelTicket(ticket.getId());
+                if (ticket != null) {
+                    Ticket.cancelTicket(ticket.getId());
+                }
                 seatSelectionPanel.listSeats(selectedSession);
             });
 
@@ -380,7 +383,9 @@ public class TicketSellingPanel extends JPanel {
                 JOptionPane.showMessageDialog(this,
                         "Payment successful!" + "\n" + "Your ticket code is: " + ticket.getCode() + "\n");
 
-                parent.showMainMenu();
+                ticket = null;
+
+                showMainMenu();
             });
         }
 
