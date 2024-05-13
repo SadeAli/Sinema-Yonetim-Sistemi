@@ -230,4 +230,8 @@ public final class DatabaseAnnotationUtils {
 
 		return queryBuilder.toString();
 	}
+
+	public static String getDeleteQuery(Class<?> clazz) {
+		return "DELETE FROM " + getTableName(clazz) + " WHERE " + getPrimaryKey(clazz) + " = ?";
+	}
 }

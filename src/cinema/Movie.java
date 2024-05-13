@@ -441,6 +441,55 @@ public class Movie {
 		return getAssignedSeatCountListForLast30Days(this.id);
 	}
 
+	public static boolean deleteFromDatabase(int id, Connection conn) {
+		try (PreparedStatement pstmt = conn.prepareStatement(
+			DatabaseAnnotationUtils.getDeleteQuery(Movie.class))) {
+
+			// Delete the movieGenres from the database
+			if (!MovieGenre.deleteFromDatabaseWithMovieId(id, conn)) {
+				throw new SQLException("Unable to delete movie genres");
+			}
+
+			// Set the parameters
+			pstmt.setInt(1, id);
+			pstmt.executeUpdate();
+
+			return true;
+		} catch (SQLException e) {
+			System.err.println("Unable to delete movie: " + e.getMessage());
+			return false;
+		}
+	}
+
+	public static boolean deleteFromDatabase(int id) {
+		Connection conn = null;
+		try {
+			conn = DatabaseManager.getConnection();
+			DatabaseManager.setAutoCommit(conn, false);
+			
+			if (!deleteFromDatabase(id, conn)) {
+				throw new SQLException("Unable to delete movie");
+			}
+
+			if (!DatabaseManager.commit(conn)) {
+				throw new SQLException("Unable to commit transaction");
+			}
+
+			return true;
+		} catch (Exception e) {
+			DatabaseManager.rollback(conn);
+			System.err.println("Unable to delete movie: " + e.getMessage());
+			return false;
+		} finally {
+			DatabaseManager.setAutoCommit(conn, true);
+			DatabaseManager.closeConnection(conn);
+		}
+	}
+
+	public static boolean deleteFromDatabase(Movie movie) {
+		return deleteFromDatabase(movie.getId());
+	}
+
 	// Method to check if a movie is currently showing
 	public boolean isCurrentlyShowing() {
 		return LocalDate.now().isBefore(lastScreeningDate) && LocalDate.now().isAfter(releaseDate);
