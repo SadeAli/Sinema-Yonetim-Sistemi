@@ -5,6 +5,7 @@ import database.*;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
+import java.sql.Statement;
 import java.sql.SQLException;
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
@@ -403,7 +404,9 @@ public class Movie {
 			e.printStackTrace();
 			return 0;
 		} finally {
-			DatabaseManager.closeStatements(List.of(ps));
+			List<Statement> sList = new ArrayList<>();
+			sList.add(ps);
+			DatabaseManager.closeStatements(sList);
 		}
 
 	}

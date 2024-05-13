@@ -71,6 +71,47 @@ public class DatabaseManager {
 		}
 	}
 
+	public static boolean closeStatement (Statement statement) {
+		if (statement != null) {
+			try {
+				statement.close();
+				return true;
+			} catch (SQLException e) {
+				System.err.println("Unable to close statement: " + e.getMessage());
+				return false;
+			}
+		} else {
+			return false;
+		}
+	}
+
+	
+	public static boolean closeStatements (List<Statement> statementList) {
+		boolean success = true;
+		if (statementList == null) {
+			return success;
+		}
+		for (Statement stmt : statementList) {
+			if (!closeStatement(stmt)) {
+				success = false;
+			}
+		}
+		return success;
+	}
+
+	
+	public static boolean clearResources (Connection conn, List<Statement> statementList) {
+		boolean success = true;
+		
+		success = closeStatements(statementList);
+		
+		if (!closeConnection(conn)) {
+			success = false;
+		}
+
+		return success;
+	}
+
 	/**
 	 * Retrieves all rows from the database table associated with the given class.
 	 * 
@@ -111,21 +152,7 @@ public class DatabaseManager {
 		}
 	}
 
-	/**
-	 * Retrieves all rows from the database table associated with the given class, filtered and sorted by the provided conditions.
-	 * 
-	 * @param clazz the class representing the database table
-	 * @param filters a list of FilterCondition objects representing the filter conditions
-	 * @param sortBy the name of the field to sort by
-	 * @param ascending true if the results should be sorted in ascending order, false if descending
-	 * @return a list of objects representing the rows in the database table that match the filter conditions, sorted as specified
-	 * @throws SQLException if a database access error occurs
-	 * @throws IllegalAccessException if the class or its nullary constructor is not accessible
-	 * @throws InstantiationException if the class that declares the underlying constructor represents an abstract class
-	 * @throws NoSuchFieldException if a field with the specified name is not found
-	 * @throws IllegalArgumentException if the class does not have a TableName annotation or any fields with the ColumnName annotation
-	 */
-	public static <T> List<T> getRowsFilteredAndSortedBy(Class<T> clazz, List<FilterCondition> filters, String sortBy, boolean ascending) throws SQLException, IllegalAccessException, InstantiationException, NoSuchFieldException {
+	public static <T> List<T> getRowsFilteredAndSortedBy(Class<T> clazz, List<FilterCondition> filters, String sortBy, boolean ascending, Connection connection) throws SQLException, NoSuchFieldException {
 		// Get the table name from the TableName annotation
 		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 	
@@ -155,8 +182,9 @@ public class DatabaseManager {
 		}
 	
 		// Execute the query and get the result set
-		try (Connection connection = getConnection();
-			 PreparedStatement stmt = connection.prepareStatement(query.toString())) {
+		PreparedStatement stmt = null;
+		try {
+			stmt = connection.prepareStatement(query.toString());
 	
 			// Set the filter values in the PreparedStatement
 			int index = 1;
@@ -182,6 +210,17 @@ public class DatabaseManager {
 	
 			// Return the list of objects
 			return result;
+		} catch (Exception e) {
+			System.err.println("Unable to get rows: " + e.getMessage());
+			throw e;
+		} finally {
+			closeStatement(stmt);
+		}
+	}
+
+	public static <T> List<T> getRowsFilteredAndSortedBy(Class<T> clazz, List<FilterCondition> filters, String sortBy, boolean ascending) throws SQLException, IllegalAccessException, InstantiationException, NoSuchFieldException {
+		try (Connection connection = getConnection()) {
+			return getRowsFilteredAndSortedBy(clazz, filters, sortBy, ascending, connection);
 		}
 	}
 
@@ -471,37 +510,4 @@ public class DatabaseManager {
 		}
 	}
 
-	public static boolean clearResources (Connection conn, List<Statement> statementList) {
-		boolean success = true;
-		if (statementList != null) {
-			success = closeStatements(statementList);
-		}
-		if (conn != null) {
-			try {
-				conn.close();
-			} catch (SQLException e) {
-				System.err.println("Unable to close connection: " + e.getMessage());
-				success = false;
-			}
-		}
-		return success;
-	}
-
-	public static boolean closeStatements (List<Statement> statementList) {
-		boolean success = true;
-		if (statementList == null) {
-			return success;
-		}
-		for (Statement stmt : statementList) {
-			if (stmt != null) {
-				try {
-					stmt.close();
-				} catch (SQLException e) {
-					System.err.println("Unable to close statement: " + e.getMessage());
-					success = false;
-				}
-			}
-		}
-		return success;
-	}
 }
