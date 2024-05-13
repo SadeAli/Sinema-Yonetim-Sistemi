@@ -195,16 +195,13 @@ public class ScreeningRoomManagementPanel extends JPanel {
             setLayout(new BoxLayout(this, BoxLayout.X_AXIS));
             setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-            JLabel nameLabel = new JLabel("Discounts");
-
-            nameLabel.setToolTipText("Discounts");
-
-            add(nameLabel);
-
             listDiscounts();
         }
 
         public void listDiscounts() {
+            this.removeAll();
+            this.add(new JLabel("Discounts: "));
+
             try {
                 discountList = DatabaseManager.getRowsFilteredAndSortedBy(Discount.class,
                         List.of(new FilterCondition("date", LocalDate.now(),
@@ -224,6 +221,8 @@ public class ScreeningRoomManagementPanel extends JPanel {
             for (int i = 0; i < 30; i++) {
                 this.add(new DayDiscountButton(i, discountArray[i]));
             }
+
+            this.revalidate();
         }
 
         private class DayDiscountButton extends JButton {
@@ -249,13 +248,15 @@ public class ScreeningRoomManagementPanel extends JPanel {
                 button.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         try {
-                            String input = JOptionPane.showInputDialog("Enter a discount ratio for the day");
-                            if (input == null)
-                                return;
 
-                            
                             if (discount == null) {
-                                DatabaseManager.insertRow(new Discount(LocalDate.now().plusDays(i), Double.parseDouble(input)));
+                                String input = JOptionPane.showInputDialog("Enter a discount ratio for the day");
+                                if (input == null)
+                                    return;
+
+                                DatabaseManager.insertRow(
+                                        new Discount(LocalDate.now().plusDays(i), Double.parseDouble(input)));
+
                             } else {
                                 DatabaseManager.deleteRow(Discount.class, discount.getId());
                             }
@@ -265,7 +266,7 @@ public class ScreeningRoomManagementPanel extends JPanel {
                             ex.printStackTrace();
                         }
 
-                        repaintDayMoviePanels();
+                        listDiscounts();
                     }
                 });
             }
