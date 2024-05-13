@@ -51,6 +51,13 @@ public class MovieGenre {
 		}
 	}
 
+	/**
+	 * Deletes movie genre records from the database with the specified movie ID.
+	 * 
+	 * @param movieId the ID of the movie to delete genre records for
+	 * @param conn the database connection
+	 * @return true if the movie genre records were successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabaseWithMovieId(int movieId, Connection conn) {
 		try (PreparedStatement pstmt = conn.prepareStatement(
 				"DELETE FROM movie_genre WHERE movie_id = ?")) {
@@ -63,6 +70,12 @@ public class MovieGenre {
 		}
 	}
 
+	/**
+	 * Deletes movie genre records from the database with the specified movie ID.
+	 * 
+	 * @param movieId the ID of the movie to delete genre records for
+	 * @return true if the movie genre records were successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabaseWithMovieId(int movieId) {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			return deleteFromDatabase(movieId, conn);
@@ -72,6 +85,13 @@ public class MovieGenre {
 		}
 	}
 
+	/**
+	 * Deletes movie genre records from the database with the specified genre ID.
+	 * 
+	 * @param genreId the ID of the genre to delete movie records for
+	 * @param conn the database connection
+	 * @return true if the movie genre records were successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabase(int id, Connection conn) {
 		try (PreparedStatement pstmt = conn.prepareStatement(
 				DatabaseAnnotationUtils.getDeleteQuery(MovieGenre.class))) {
@@ -85,6 +105,12 @@ public class MovieGenre {
 
 	}
 
+	/**
+	 * Deletes movie genre records from the database with the specified genre ID.
+	 * 
+	 * @param genreId the ID of the genre to delete movie records for
+	 * @return true if the movie genre records were successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabase(int id) {
 		try (Connection conn = DatabaseManager.getConnection()) {
 			return deleteFromDatabase(id, conn);
@@ -94,6 +120,13 @@ public class MovieGenre {
 		}
 	}
 
+	/**
+	 * Deletes the specified movie genre record from the database.
+	 * 
+	 * @param movieGenre the movie genre record to delete
+	 * @param conn the database connection
+	 * @return true if the movie genre record was successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabase(MovieGenre movieGenre) {
 		return deleteFromDatabase(movieGenre.getId());
 	}

@@ -33,7 +33,6 @@ public class ScreeningRoom {
 	}
 
 	public ScreeningRoom(int seatRowCount, int seatColCount) {
-		//TODO Add to the database
 		this.seatRowCount = seatRowCount;
 		this.seatColCount = seatColCount;
 	}
@@ -75,6 +74,15 @@ public class ScreeningRoom {
 		}
 	}
 
+	
+	/**
+	 * Sets the active hours for the screening room.
+	 * The active hours determine the opening and closing time of the screening room.
+	 * 
+	 * @param openingTime the opening time of the screening room
+	 * @param closingTime the closing time of the screening room
+	 * @return true if the active hours were set successfully, false otherwise
+	 */
 	public static boolean setActiveHours(LocalTime openingTime, 
 			LocalTime closingTime) {
 		if (openingTime.isAfter(closingTime)) {
@@ -85,15 +93,24 @@ public class ScreeningRoom {
 		return true;
 	}
 
+	/**
+	 * Adds a movie to the specified date in the screening room.
+	 * 
+	 * @param date The date to add the movie to.
+	 * @param movieId The ID of the movie to add.
+	 * @return true if the movie was successfully added, false otherwise.
+	 */
 	public boolean addMovieToDate(LocalDate date, int movieId) {
 		List<Session> sessionList = new ArrayList<>();
 
+		// Check if the movie is already added to the date
 		List<FilterCondition> filters = new ArrayList<>();
 		filters.add(new FilterCondition("date", date, 
 				FilterCondition.Relation.EQUALS));
 		filters.add(new FilterCondition("screeningRoomId", this.id, 
 				FilterCondition.Relation.EQUALS));
 		try {
+			// If the movie is not already added to the date, add it
 			if (!DatabaseManager.exists(Session.class, filters)) {
 				LocalDateTime closingDateTime = LocalDateTime.of(date, 
 						ScreeningRoom.closingTime);
@@ -118,6 +135,11 @@ public class ScreeningRoom {
 		return false;
 	}
 
+	/**
+	 * Inserts the screening room and its seats into the database.
+	 * 
+	 * @return true if the insertion is successful, false otherwise.
+	 */
 	public boolean insertToDatabase() {
 
 		List<Seat> seatList = new ArrayList<>();
@@ -231,6 +253,13 @@ public class ScreeningRoom {
 		}
 	}
 
+	/**
+	 * Deletes a screening room from the database.
+	 *
+	 * @param id   the ID of the screening room to be deleted
+	 * @param conn the database connection
+	 * @return true if the screening room is successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabase(int id, Connection conn) {
 		String query = "DELETE FROM screening_room WHERE id = ?";
 		String querySeat = "DELETE FROM seat WHERE screening_room_id = ?";
@@ -245,6 +274,7 @@ public class ScreeningRoom {
 		PreparedStatement psCheckTicket = null;
 
 		try {
+			// Check if there are tickets associated with the screening room
 			psCheckTicket = conn.prepareStatement(queryCheckTicket);
 			psCheckTicket.setInt(1, id);
 			ResultSet rs = psCheckTicket.executeQuery();
@@ -252,14 +282,17 @@ public class ScreeningRoom {
 				throw new SQLException("Unable to delete screening room: there are tickets associated with this screening room");
 			}
 
+			// Delete sessions associated with the screening room
 			if (!Session.deleteSessionsWithScreeningRoomId(id, conn)) {
 				throw new SQLException("Unable to delete sessions");
 			}
 
+			// Delete the seats associated with the screening room
 			psSeat = conn.prepareStatement(querySeat);
 			psSeat.setInt(1, id);
 			psSeat.executeUpdate();
 
+			// Delete the screening room
 			ps = conn.prepareStatement(query);
 			ps.setInt(1, id);
 			ps.executeUpdate();
@@ -279,6 +312,12 @@ public class ScreeningRoom {
 		}
 	}
 
+	/**
+	 * Deletes a screening room from the database based on the given ID.
+	 * 
+	 * @param id the ID of the screening room to be deleted
+	 * @return true if the screening room is successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabase(int id) {
 		Connection conn = null;
 		try {
@@ -303,6 +342,14 @@ public class ScreeningRoom {
 		}
 	}
 
+	/**
+	 * Deletes all sessions from a specific screening room on a given date.
+	 * 
+	 * @param screeningRoomId the ID of the screening room
+	 * @param date the date for which sessions should be deleted
+	 * @param conn the database connection
+	 * @return true if the sessions were successfully deleted, false otherwise
+	 */
 	public static boolean deleteSessionsFromDate(int screeningRoomId, LocalDate date, Connection conn) {
 		try {
 			List<Session> sessionList = DatabaseManager.getRowsFilteredAndSortedBy(
@@ -331,6 +378,13 @@ public class ScreeningRoom {
 		}
 	}
 
+	/**
+	 * Deletes sessions from a specific screening room on a given date.
+	 * 
+	 * @param screeningRoomId the ID of the screening room
+	 * @param date the date for which sessions should be deleted
+	 * @return true if the sessions were successfully deleted, false otherwise
+	 */
 	public static boolean deleteSessionsFromDate(int screeningRoomId, LocalDate date) {
 		Connection conn = null;
 		try {
@@ -359,6 +413,12 @@ public class ScreeningRoom {
 		}
 	}
 
+	/**
+	 * Deletes all sessions from the specified date in this screening room.
+	 *
+	 * @param date the date from which sessions should be deleted
+	 * @return true if sessions were successfully deleted, false otherwise
+	 */
 	public boolean deleteSessionsFromDate(LocalDate date) {
 		return deleteSessionsFromDate(this.id, date);
 	}

@@ -78,6 +78,11 @@ public class Ticket {
 	}
 
 
+	/**
+	 * Retrieves all tickets from the database.
+	 * 
+	 * @return a list of Ticket objects representing all the tickets in the database
+	 */
 	public static List<Ticket> getAllTickets() {
 		try {
 			return DatabaseManager.getAllRows(Ticket.class);
@@ -87,6 +92,13 @@ public class Ticket {
 		}
 	}
 
+	
+	/**
+	 * Cancels a ticket by updating the seat availability and deleting the ticket from the database.
+	 * 
+	 * @param ticketId the ID of the ticket to be canceled
+	 * @return true if the ticket was successfully canceled, false otherwise
+	 */
 	public static boolean cancelTicket(int ticketId) {
 		String sql = "UPDATE seat_availability SET is_available = 1, ticket_id = NULL WHERE ticket_id = ?";
 		String sqlGetTicket = "SELECT is_paid FROM ticket WHERE id = ?";
@@ -176,6 +188,12 @@ public class Ticket {
 		}
 	}
 
+	/**
+	 * Verifies the purchase of a ticket by updating the 'is_paid' field in the database.
+	 * 
+	 * @param ticketId the ID of the ticket to be verified
+	 * @return true if the purchase is successfully verified, false otherwise
+	 */
 	public static boolean verifyPurchase(int ticketId) {
 		String sql = "UPDATE ticket SET is_paid = 1 WHERE id = ?";
 

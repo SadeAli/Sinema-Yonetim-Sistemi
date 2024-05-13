@@ -13,10 +13,22 @@ import java.util.Map;
 public class DatabaseManager {
 	public static final String SQLITE_JDBC_URL = "jdbc:sqlite:data/cinema_mecpine.db";
 
+/**
+ * Returns a connection to the database.
+ *
+ * @return a connection to the database
+ * @throws SQLException if a database access error occurs
+ */
     public static Connection getConnection() throws SQLException {
         return DriverManager.getConnection(SQLITE_JDBC_URL);
     }
 
+	/**
+	 * Closes the given database connection.
+	 *
+	 * @param connection the database connection to be closed
+	 * @return true if the connection is successfully closed, false otherwise
+	 */
 	public static boolean closeConnection(Connection connection) {
         if (connection != null) {
             try {
@@ -29,6 +41,13 @@ public class DatabaseManager {
 		return false;
     }
 
+	/**
+	 * Sets the auto-commit mode for the given database connection.
+	 *
+	 * @param connection the database connection
+	 * @param autoCommit the desired auto-commit mode (true for auto-commit enabled, false for disabled)
+	 * @return true if the auto-commit mode was successfully set, false otherwise
+	 */
 	public static boolean setAutoCommit(Connection connection, boolean autoCommit) {
 		if (connection != null) {
 			try {
@@ -43,6 +62,12 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Rolls back the changes made in the current transaction of the specified connection.
+	 * 
+	 * @param connection the connection to rollback the changes on
+	 * @return true if the rollback is successful, false otherwise
+	 */
 	public static boolean rollback(Connection connection) {
 		if (connection != null) {
 			try {
@@ -57,6 +82,12 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Commits the changes made in the current transaction to the database.
+	 * 
+	 * @param connection the database connection
+	 * @return true if the changes are successfully committed, false otherwise
+	 */
 	public static boolean commit(Connection connection) {
 		if (connection != null) {
 			try {
@@ -71,6 +102,12 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Closes the given database statement.
+	 * 
+	 * @param statement the statement to be closed
+	 * @return true if the statement is successfully closed, false otherwise
+	 */
 	public static boolean closeStatement (Statement statement) {
 		if (statement != null) {
 			try {
@@ -86,6 +123,12 @@ public class DatabaseManager {
 	}
 
 	
+	/**
+	 * Closes a list of database statements.
+	 * 
+	 * @param statementList the list of statements to be closed
+	 * @return true if all statements were successfully closed, false otherwise
+	 */
 	public static boolean closeStatements (List<Statement> statementList) {
 		boolean success = true;
 		if (statementList == null) {
@@ -100,6 +143,13 @@ public class DatabaseManager {
 	}
 
 	
+	/**
+	 * Clears the resources by closing the statements and the connection.
+	 *
+	 * @param conn The connection to be closed.
+	 * @param statementList The list of statements to be closed.
+	 * @return {@code true} if the resources are cleared successfully, {@code false} otherwise.
+	 */
 	public static boolean clearResources (Connection conn, List<Statement> statementList) {
 		boolean success = true;
 		
@@ -152,6 +202,18 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Retrieves a list of objects of the specified class from the database, filtered and sorted according to the provided parameters.
+	 *
+	 * @param clazz The class of the objects to retrieve.
+	 * @param filters The list of filter conditions to apply to the query.
+	 * @param sortBy The field name to sort the results by. Can be null if no sorting is required.
+	 * @param ascending Specifies whether the results should be sorted in ascending order.
+	 * @param connection The database connection to use for executing the query.
+	 * @return A list of objects of the specified class, filtered and sorted according to the provided parameters.
+	 * @throws SQLException If an error occurs while executing the SQL query.
+	 * @throws NoSuchFieldException If the specified field does not exist in the class.
+	 */
 	public static <T> List<T> getRowsFilteredAndSortedBy(Class<T> clazz, List<FilterCondition> filters, String sortBy, boolean ascending, Connection connection) throws SQLException, NoSuchFieldException {
 		// Get the table name from the TableName annotation
 		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
@@ -218,6 +280,19 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Retrieves a list of rows from the database table, filtered and sorted by the specified conditions.
+	 *
+	 * @param clazz     The class representing the type of objects to retrieve.
+	 * @param filters   The list of filter conditions to apply.
+	 * @param sortBy    The name of the column to sort the rows by.
+	 * @param ascending A boolean value indicating whether to sort the rows in ascending order.
+	 * @return A list of objects of type T that match the filter conditions and are sorted according to the specified column.
+	 * @throws SQLException           If an error occurs while accessing the database.
+	 * @throws IllegalAccessException If the class or its nullary constructor is not accessible.
+	 * @throws InstantiationException If the class represents an abstract class, an interface, an array class, a primitive type, or void; or if the class has no nullary constructor.
+	 * @throws NoSuchFieldException    If the specified sortBy column does not exist in the class.
+	 */
 	public static <T> List<T> getRowsFilteredAndSortedBy(Class<T> clazz, List<FilterCondition> filters, String sortBy, boolean ascending) throws SQLException, IllegalAccessException, InstantiationException, NoSuchFieldException {
 		try (Connection connection = getConnection()) {
 			return getRowsFilteredAndSortedBy(clazz, filters, sortBy, ascending, connection);
@@ -294,6 +369,15 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Updates a row in the database table corresponding to the given object.
+	 *
+	 * @param object the object representing the row to be updated
+	 * @return true if the row was successfully updated, false otherwise
+	 * @throws SQLException if a database access error occurs
+	 * @throws IllegalArgumentException if the object is null or does not have a valid primary key value
+	 * @throws IllegalAccessException if the object's fields cannot be accessed
+	 */
 	public static boolean updateRow(Object object) throws SQLException, IllegalArgumentException, IllegalAccessException {
 		Class<?> clazz = object.getClass();
 		// Get the table name from the TableName annotation
@@ -345,6 +429,15 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Retrieves a list of objects of the specified class from the database based on the provided query.
+	 *
+	 * @param <T>       the type of objects to retrieve
+	 * @param clazz     the class of objects to retrieve
+	 * @param addQuery  the additional query to append to the SELECT statement
+	 * @return          a list of objects of the specified class retrieved from the database
+	 * @throws SQLException if a database access error occurs
+	 */
 	public static <T> List<T> getClassWithQuery(Class<T> clazz, String addQuery) throws SQLException {
 		StringBuilder queryBuilder = new StringBuilder("SELECT DISTINCT ");
 		
@@ -364,6 +457,15 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Retrieves a row from the database table based on the provided class and ID.
+	 *
+	 * @param <T> the type of the object to retrieve from the database
+	 * @param clazz the class of the object to retrieve from the database
+	 * @param id the ID of the row to retrieve
+	 * @return the retrieved object, or null if no matching row is found
+	 * @throws SQLException if a database access error occurs
+	 */
 	public static <T> T getRowById (Class<T> clazz, int id) throws SQLException {
 		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 		
@@ -462,6 +564,16 @@ public class DatabaseManager {
 		return false;
 	}
 
+	/**
+	 * Counts the number of rows in the specified table that match the given filters.
+	 *
+	 * @param <T> the type of the entity class
+	 * @param clazz the class representing the entity
+	 * @param filters the list of filter conditions to apply
+	 * @return the number of rows that match the filters
+	 * @throws NoSuchFieldException if a field specified in the filters does not exist in the entity class
+	 * @throws Exception if an error occurs while executing the count query
+	 */
 	public static <T> int count(Class<T> clazz, List<FilterCondition> filters) throws NoSuchFieldException, Exception {
 		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 		StringBuilder query = new StringBuilder("SELECT COUNT(*) FROM " + tableName);
@@ -495,6 +607,14 @@ public class DatabaseManager {
 		}
 	}
 
+	/**
+	 * Deletes a row from the database table based on the provided class and ID.
+	 *
+	 * @param clazz the class representing the database table
+	 * @param id the ID of the row to be deleted
+	 * @return true if the row was successfully deleted, false otherwise
+	 * @throws SQLException if an error occurs while deleting the row
+	 */
 	public static <T> boolean deleteRow(Class<T> clazz, int id) throws SQLException {
 		String tableName = DatabaseAnnotationUtils.getTableName(clazz);
 		String query = "DELETE FROM " + tableName + " WHERE id = ?";

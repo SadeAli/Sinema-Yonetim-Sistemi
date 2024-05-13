@@ -18,6 +18,13 @@ public final class DatabaseAnnotationUtils {
 		throw new AssertionError("Cannot instantiate DatabaseAnnotationUtils");
 	}
 
+	/**
+	 * Retrieves the table name associated with the given class.
+	 *
+	 * @param clazz The class for which to retrieve the table name.
+	 * @return The table name associated with the class.
+	 * @throws IllegalArgumentException If the class does not have a TableName annotation.
+	 */
     public static String getTableName(Class<?> clazz) {
         TableName tableNameAnnotation = clazz.getAnnotation(TableName.class);
         if (tableNameAnnotation == null) {
@@ -26,6 +33,13 @@ public final class DatabaseAnnotationUtils {
         return tableNameAnnotation.value();
     }
 
+	/**
+	 * Retrieves the column name associated with the given field.
+	 *
+	 * @param field The field for which to retrieve the column name.
+	 * @return The column name associated with the field.
+	 * @throws IllegalArgumentException If the field does not have a ColumnName annotation.
+	 */
 	public static String getColumnName(Field field) {
 		ColumnName columnNameAnnotation = field.getAnnotation(ColumnName.class);
 		if (columnNameAnnotation == null) {
@@ -34,6 +48,13 @@ public final class DatabaseAnnotationUtils {
 		return columnNameAnnotation.value();
 	}
 
+	/**
+	 * Retrieves the column names and corresponding fields of a given class annotated with @ColumnName.
+	 *
+	 * @param clazz the class to retrieve the column names and fields from
+	 * @return a map containing the column names as keys and the corresponding fields as values
+	 * @throws IllegalArgumentException if the class does not have any fields with the ColumnName annotation
+	 */
 	public static Map<String, Field> getColumnNamesAndFields(Class<?> clazz) {
 		Map<String, Field> columnFieldMap = new LinkedHashMap<>();
 		Field[] fields = clazz.getDeclaredFields();
@@ -52,6 +73,13 @@ public final class DatabaseAnnotationUtils {
 		return columnFieldMap;
 	}
 
+	/**
+	 * Returns the name of the primary key column for the given class.
+	 *
+	 * @param clazz the class for which to retrieve the primary key column name
+	 * @return the name of the primary key column
+	 * @throws IllegalArgumentException if the class does not have a field with the PrimaryKey annotation
+	 */
 	public static String getPrimaryKey(Class<?> clazz) {
 		Field[] fields = clazz.getDeclaredFields();
 		for (Field field : fields) {
@@ -62,6 +90,13 @@ public final class DatabaseAnnotationUtils {
 		throw new IllegalArgumentException("Class " + clazz.getName() + " does not have a field with the PrimaryKey annotation");
 	}
 
+	/**
+	 * Retrieves the value of the primary key field from the given object.
+	 *
+	 * @param object the object from which to retrieve the primary key value
+	 * @return the value of the primary key field
+	 * @throws IllegalArgumentException if the object does not have a field with the PrimaryKey annotation
+	 */
 	public static int getPrimaryKeyValue(Object object) {
 		Class<?> clazz= object.getClass();
 		for (Field field : clazz.getDeclaredFields()) {
@@ -72,6 +107,14 @@ public final class DatabaseAnnotationUtils {
 		throw new IllegalArgumentException("Object " + object.getClass().getName() + " does not have a field with the PrimaryKey annotation");
 	}
 
+	/**
+	 * Creates a new instance of the specified class using its default constructor.
+	 *
+	 * @param <T> the type of the object to create
+	 * @param clazz the class of the object to create
+	 * @return a new instance of the specified class
+	 * @throws RuntimeException if unable to create the object
+	 */
 	public static <T> T createNewInstance(Class<T> clazz) {
 		T object = null;
 		try {
@@ -92,6 +135,18 @@ public final class DatabaseAnnotationUtils {
 		return object;
 	}
 
+	/**
+	 * Sets the fields of an object from the values in a ResultSet based on the provided column-field mapping.
+	 *
+	 * @param <T>    the type of the object
+	 * @param columnFieldMap    a map that maps column names to corresponding Field objects
+	 * @param clazz    the class of the object
+	 * @param object    the object to set the fields on
+	 * @param rs    the ResultSet containing the values
+	 * @return the object with the fields set
+	 * @throws IllegalArgumentException if the field type is not supported
+	 * @throws RuntimeException if unable to set the field
+	 */
 	public static <T> T setFieldsFromResultSet(Map<String, Field> columnFieldMap, Class<T> clazz, T object, ResultSet rs) {
 		try {
 			int i = 1;
@@ -134,11 +189,25 @@ public final class DatabaseAnnotationUtils {
 		return object;
 	}
 
+	/**
+	 * Checks if the given field is marked as a primary key.
+	 *
+	 * @param field the field to check
+	 * @return true if the field is marked as a primary key, false otherwise
+	 */
 	public static boolean isPrimaryKey(Field field) {
 		PrimaryKey primaryKeyAnnotation = field.getAnnotation(PrimaryKey.class);
 		return primaryKeyAnnotation != null;
 	}
 
+	/**
+	 * Retrieves the value of a field from an object.
+	 *
+	 * @param field the field to retrieve the value from
+	 * @param object the object containing the field
+	 * @return the value of the field
+	 * @throws RuntimeException if unable to get the field value
+	 */
 	public static Object getFieldValue(Field field, Object object) {
 		try {
 			field.setAccessible(true);
@@ -151,6 +220,14 @@ public final class DatabaseAnnotationUtils {
 		}
 	}
 
+	/**
+	 * Sets the value of a parameter in a PreparedStatement based on its type.
+	 * 
+	 * @param stmt the PreparedStatement object
+	 * @param index the index of the parameter
+	 * @param value the value to be set
+	 * @throws SQLException if a database access error occurs
+	 */
 	public static void setPreparedStatementValue(PreparedStatement stmt, int index, Object value) throws SQLException {
 		if (value == null) {
 			stmt.setNull(index, java.sql.Types.NULL);
@@ -176,6 +253,14 @@ public final class DatabaseAnnotationUtils {
 		}
 	}
 
+	/**
+	 * Sets the values of a PreparedStatement based on the given column-field mapping and object.
+	 *
+	 * @param columnFieldMap a map containing the column-field mapping
+	 * @param object the object from which to retrieve the field values
+	 * @param ps the PreparedStatement to set the values on
+	 * @throws RuntimeException if unable to set the prepared statement values
+	 */
 	public static void setPreparedStatementValueSet(Map<String, Field> columnFieldMap, Object object, PreparedStatement ps) {
 		try {
 			int i = 1;
@@ -192,6 +277,12 @@ public final class DatabaseAnnotationUtils {
 		}
 	}
 
+	/**
+	 * Generates an SQL INSERT query for the specified class.
+	 *
+	 * @param clazz the class for which the INSERT query is generated
+	 * @return the generated INSERT query as a string
+	 */
 	public static String getInsertQuery(Class<?> clazz) {
 		StringBuilder queryBuilder = new StringBuilder("INSERT INTO " + getTableName(clazz) + " (");
 		StringBuilder valuesBuilder = new StringBuilder(") VALUES (");
@@ -212,6 +303,12 @@ public final class DatabaseAnnotationUtils {
 		return queryBuilder.append(valuesBuilder).append(")").toString();
 	}
 
+	/**
+	 * Returns the update query for the specified class.
+	 *
+	 * @param clazz the class for which the update query is generated
+	 * @return the update query as a string
+	 */
 	public static String getUpdateQuery(Class<?> clazz) {
 		StringBuilder queryBuilder = new StringBuilder("UPDATE " + getTableName(clazz) + " SET ");
 
@@ -231,6 +328,12 @@ public final class DatabaseAnnotationUtils {
 		return queryBuilder.toString();
 	}
 
+	/**
+	 * Returns the delete query for the specified class.
+	 *
+	 * @param clazz the class for which the delete query is generated
+	 * @return the delete query string
+	 */
 	public static String getDeleteQuery(Class<?> clazz) {
 		return "DELETE FROM " + getTableName(clazz) + " WHERE " + getPrimaryKey(clazz) + " = ?";
 	}

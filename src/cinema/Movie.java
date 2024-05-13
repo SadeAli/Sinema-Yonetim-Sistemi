@@ -123,8 +123,14 @@ public class Movie {
 			return new ArrayList<>();
 		}
 	}
-	
-    // Method to add a rating to the movie
+		
+	/**
+	 * Adds a rating for a movie based on the provided ticket code and new rating value.
+	 * 
+	 * @param ticketCode The code of the ticket for which the rating is being added.
+	 * @param newRate The new rating value to be added.
+	 * @return true if the rating was successfully added, false otherwise.
+	 */
     public static boolean addRating(int ticketCode, float newRate) {
 		String sqlGetMovie = "SELECT movie.id, movie.rating, movie.rating_count"
 			+ " FROM movie"
@@ -271,6 +277,13 @@ public class Movie {
 		}
     }
 
+	/**
+	 * Retrieves the number of ticket sales for a specific movie on a given date.
+	 * 
+	 * @param movieId the ID of the movie
+	 * @param date the date of the movie session
+	 * @return the number of ticket sales for the movie on the given date
+	 */
 	public static int getSales(int movieId, LocalDate date) {
 		String sql = "SELECT COUNT(*)"
 			+ " FROM seat_availability"
@@ -321,6 +334,12 @@ public class Movie {
 		}
 	}
 
+	/**
+	 * Retrieves the number of ticket sales for a specific movie.
+	 * 
+	 * @param movieId the ID of the movie
+	 * @return the number of ticket sales for the movie
+	 */
 	public static int getSales(int movieId) {
 		String sql = "SELECT COUNT(*)"
 			+ " FROM seat_availability"
@@ -371,6 +390,15 @@ public class Movie {
 	
 	}
 
+	/**
+	 * Retrieves the number of assigned seats for a specific movie on a given date.
+	 *
+	 * @param movieId the ID of the movie
+	 * @param date the date of the session
+	 * @param conn the database connection
+	 * @return the number of assigned seats
+	 * @throws IllegalArgumentException if the movie ID is invalid, the date is null, or the connection is null
+	 */
 	public static int getAssignedSeatCount(int movieId, LocalDate date, Connection conn){
 		String sql = "SELECT COUNT(*)"
 		+ " FROM seat_availability"
@@ -411,6 +439,13 @@ public class Movie {
 
 	}
 
+	/**
+	 * Returns the number of assigned seats for a specific movie on a given date.
+	 *
+	 * @param movieId the ID of the movie
+	 * @param date the date for which to retrieve the assigned seat count
+	 * @return the number of assigned seats for the specified movie and date
+	 */
 	public static int getAssignedSeatCount (int movieId, LocalDate date) {
 
 		Connection conn = null;
@@ -425,10 +460,22 @@ public class Movie {
 		}
 	}
 
+	/**
+	 * Returns the number of assigned seats for the movie on the specified date.
+	 *
+	 * @param date the date for which to get the assigned seat count
+	 * @return the number of assigned seats for the movie on the specified date
+	 */
 	public int getAssignedSeatCount(LocalDate date) {
 		return getAssignedSeatCount(this.id, date);
 	}
 
+	/**
+	 * Returns a list of assigned seat counts for the last 30 days for a given movie.
+	 *
+	 * @param movieId the ID of the movie
+	 * @return a list of assigned seat counts for the last 30 days
+	 */
 	public static List<Integer> getAssignedSeatCountListForLast30Days (int movieId) {
 		List<Integer> assignedSeatCountList = new ArrayList<>();
 
@@ -440,10 +487,22 @@ public class Movie {
 		return assignedSeatCountList;
 	}
 
+	/**
+	 * Returns a list of assigned seat counts for the last 30 days.
+	 *
+	 * @return a list of assigned seat counts for the last 30 days
+	 */
 	public List<Integer> getAssignedSeatCountListForLast30Days() {
 		return getAssignedSeatCountListForLast30Days(this.id);
 	}
 
+	/**
+	 * Deletes a movie from the database with the specified ID.
+	 * 
+	 * @param id the ID of the movie to delete
+	 * @param conn the database connection
+	 * @return true if the movie is successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabase(int id, Connection conn) {
 		try (PreparedStatement pstmt = conn.prepareStatement(
 			DatabaseAnnotationUtils.getDeleteQuery(Movie.class))) {
@@ -464,6 +523,12 @@ public class Movie {
 		}
 	}
 
+	/**
+	 * Deletes a movie from the database based on the given ID.
+	 *
+	 * @param id the ID of the movie to be deleted
+	 * @return true if the movie is successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabase(int id) {
 		Connection conn = null;
 		try {
@@ -489,6 +554,12 @@ public class Movie {
 		}
 	}
 
+	/**
+	 * Deletes a movie from the database.
+	 * 
+	 * @param movie the movie to be deleted
+	 * @return true if the movie is successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabase(Movie movie) {
 		return deleteFromDatabase(movie.getId());
 	}

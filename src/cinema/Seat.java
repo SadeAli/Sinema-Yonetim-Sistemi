@@ -25,10 +25,6 @@ public class Seat {
 	private Seat() {}
 
 	public Seat(int screeningRoomId, int row, int col) {
-		//TODO Check if the row and column are valid
-		//TODO Check if there is already a seat at the given row and column
-		//TODO Check if the screening room exists
-	
 		this.screeningRoomId = screeningRoomId;
 		this.row = row;
 		this.col = col;

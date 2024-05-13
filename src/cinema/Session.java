@@ -44,9 +44,6 @@ public class Session {
 	private Session() {}
 
 	public Session(int movieId, int screeningRoomId, LocalDate date, LocalTime startTime, int extendedDuration) {
-
-		//TODO Check if the screening room is available at the given time.
-
 		this.movieId = movieId;
 		this.screeningRoomId = screeningRoomId;
 		this.date = date;
@@ -101,6 +98,12 @@ public class Session {
 		}
 	}
 
+	/**
+	 * Inserts a list of sessions into the database.
+	 * 
+	 * @param sessionList the list of sessions to be inserted
+	 * @return true if the sessions are successfully inserted, false otherwise
+	 */
 	protected static boolean insertList(List<Session> sessionList) {
 		// Check if the list is empty
 		if (sessionList.isEmpty()) {
@@ -199,6 +202,13 @@ public class Session {
 		}
 	}
 
+	/**
+	 * Deletes a session from the database.
+	 *
+	 * @param sessionId the ID of the session to be deleted
+	 * @param conn the database connection
+	 * @return true if the session is successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabase(int sessionId, Connection conn) {
 		String query = "DELETE FROM session WHERE id = ?";
 		String querySeatAvailability = "DELETE FROM seat_availability WHERE session_id = ?";
@@ -247,6 +257,12 @@ public class Session {
 		}
 	}
 
+	/**
+	 * Deletes a session from the database.
+	 * 
+	 * @param sessionId the ID of the session to be deleted
+	 * @return true if the session is successfully deleted, false otherwise
+	 */
 	public static boolean deleteFromDatabase(int sessionId) {
 		Connection conn = null;
 		try {
@@ -271,10 +287,22 @@ public class Session {
 		}
 	}
 
+	/**
+	 * Deletes the session from the database.
+	 * 
+	 * @return true if the session is successfully deleted, false otherwise
+	 */
 	public boolean deleteFromDatabase() {
 		return deleteFromDatabase(this.id);
 	}
 
+	/**
+	 * Deletes sessions with the specified screening room ID from the database.
+	 *
+	 * @param screeningRoomId the ID of the screening room
+	 * @param conn the database connection
+	 * @return true if the sessions are successfully deleted, false otherwise
+	 */
 	public static boolean deleteSessionsWithScreeningRoomId(int screeningRoomId, Connection conn) {
 		String query = "DELETE FROM session WHERE screening_room_id = ?";
 		
