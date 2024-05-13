@@ -360,24 +360,7 @@ public class ScreeningRoomManagementPanel extends JPanel {
                     public void actionPerformed(ActionEvent e) {
 
                         if (selectedMovie == null) {
-                            List<Session> sessionList = null;
-                            try {
-                                sessionList = DatabaseManager.getRowsFilteredAndSortedBy(Session.class,
-                                        List.of(new FilterCondition("screeningRoomId", screeningRoom.getId(),
-                                                FilterCondition.Relation.EQUALS),
-                                                new FilterCondition("date", LocalDate.now().plusDays(index),
-                                                        FilterCondition.Relation.EQUALS)),
-                                        "date", false);
-                            } catch (Exception e1) {
-                                e1.printStackTrace();
-                            }
-
-                            if (sessionList.size() > 0) {
-                                for (Session s : sessionList) {
-                                    Session.delete(s.getId());
-                                }
-                            }
-
+                            ScreeningRoom.deleteSessionsFromDate(screeningRoom.getId(), LocalDate.now().plusDays(index));
                             repaintDayMoviePanels();
                             return;
                         }
