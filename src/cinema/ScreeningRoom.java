@@ -238,11 +238,24 @@ public class ScreeningRoom {
 	public static boolean deleteFromDatabase(int id, Connection conn) {
 		String query = "DELETE FROM screening_room WHERE id = ?";
 		String querySeat = "DELETE FROM seat WHERE screening_room_id = ?";
+		String queryCheckTicket = "SELECT ticket.id"
+			+ " FROM ticket"
+			+ " JOIN seat_availability ON seat_availability.ticket_id = ticket.id"
+			+ " JOIN session ON session.id = seat_availability.session_id"
+			+ " WHERE session.screening_room_id = ?";
 
 		PreparedStatement ps = null;
 		PreparedStatement psSeat = null;
+		PreparedStatement psCheckTicket = null;
 
 		try {
+			psCheckTicket = conn.prepareStatement(queryCheckTicket);
+			psCheckTicket.setInt(1, id);
+			ResultSet rs = psCheckTicket.executeQuery();
+			if (rs.next()) {
+				throw new SQLException("Unable to delete screening room: there are tickets associated with this screening room");
+			}
+
 			if (!Session.deleteSessionsWithScreeningRoomId(id, conn)) {
 				throw new SQLException("Unable to delete sessions");
 			}
@@ -265,6 +278,7 @@ public class ScreeningRoom {
 			List<Statement> sList = new ArrayList<>();
 			sList.add(ps);
 			sList.add(psSeat);
+			sList.add(psCheckTicket);
 			DatabaseManager.closeStatements(sList);
 		}
 	}
