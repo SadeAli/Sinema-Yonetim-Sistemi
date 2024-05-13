@@ -5,15 +5,12 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-import java.awt.event.FocusAdapter;
-import java.awt.event.FocusEvent;
 import java.time.LocalDate;
 
 import java.util.ArrayList;
 import java.util.List;
 
 import javax.swing.JButton;
-import javax.swing.JDialog;
 import javax.swing.JLabel;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;

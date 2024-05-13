@@ -1,6 +1,5 @@
-package gui.mainPanels;
+package gui.guiUtils;
 
-import java.awt.Dimension;
 import java.time.LocalDate;
 import java.util.Calendar;
 
@@ -10,12 +9,11 @@ import javax.swing.SpinnerDateModel;
 public class DateSpinner extends JSpinner {
 
     public DateSpinner() {
+        super();
 
         SpinnerDateModel dateModel = new SpinnerDateModel();
-
-        super(dateModel);
-
         DateEditor editor = new JSpinner.DateEditor(this, "dd/MM/yy");
+        this.setModel(dateModel);
         dateModel.setCalendarField(Calendar.DAY_OF_MONTH);
 
         this.setEditor(editor);

@@ -11,7 +11,6 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.ZoneId;
-import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.List;
 
@@ -29,17 +28,11 @@ import javax.swing.JSpinner.DateEditor;
 import javax.swing.JTable;
 import javax.swing.JTextField;
 import javax.swing.SpinnerDateModel;
-import javax.swing.SwingConstants;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
 import javax.swing.table.AbstractTableModel;
-import javax.swing.table.DefaultTableCellRenderer;
-import javax.swing.table.TableCellRenderer;
 
 import cinema.Movie;
-import cinema.ScreeningRoom;
 import database.DatabaseManager;
-import gui.mainPanels.DateSpinner;
+import gui.guiUtils.DateSpinner;
 import gui.mainPanels.adminPanels.MovieManagementPanel;
 
 public class MovieManagementPanel extends JPanel {
