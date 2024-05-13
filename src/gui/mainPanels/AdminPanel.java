@@ -5,7 +5,6 @@ import java.awt.Dimension;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
@@ -21,19 +20,14 @@ import gui.CinemaGUI;
 import gui.guiUtils.MovieComboBox;
 import gui.mainPanels.adminPanels.MovieManagementPanel;
 import gui.mainPanels.adminPanels.ScreeningRoomManagementPanel;
-import java.awt.GridLayout;
 import java.time.format.DateTimeFormatter;
 
-import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.data.category.DefaultCategoryDataset;
-import org.jfree.chart.JFreeChart;
 import org.jfree.chart.plot.CategoryPlot;
 import org.jfree.chart.renderer.category.CategoryItemRenderer;
 import org.jfree.chart.renderer.category.LineAndShapeRenderer;
-import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.chart.axis.NumberAxis;
 import org.jfree.chart.axis.CategoryAxis;
 import org.jfree.chart.axis.CategoryLabelPositions;
@@ -45,7 +39,6 @@ public class AdminPanel extends JPanel {
 
     ScreeningRoomManagementPanel screeningRoomManagementPanel = new ScreeningRoomManagementPanel(screeningRooms);
     JPanel movieManagementPanel = new MovieManagementPanel();
-    DiscountPanel discountPanel = new DiscountPanel();
     StatisticsPanel statisticsPanel = new StatisticsPanel();
 
     public AdminPanel(CinemaGUI cinemaGUI, int width, int height) {
@@ -77,7 +70,6 @@ public class AdminPanel extends JPanel {
         // tabbed pane 0 is the movie-hall management panel
         tabbedPane.add("Room", screeningRoomManagementPanel);
         tabbedPane.add("Movie", movieManagementPanel);
-        tabbedPane.add("Discount", discountPanel);
         tabbedPane.add("Statistics", statisticsPanel);
     }
 
@@ -95,7 +87,7 @@ public class AdminPanel extends JPanel {
             MovieComboBox movieCombobox = new MovieComboBox();
             
             // here is your panel
-            JPanel centerPanel = new OmerPanel(selectedMovie);
+            JPanel centerPanel = new CustomChartPanel(selectedMovie);
 
             List<Movie> movies = Movie.getAllMovies();
             selectedMovie = movies.get(0);
@@ -109,34 +101,21 @@ public class AdminPanel extends JPanel {
             movieCombobox.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     selectedMovie = (Movie) movieCombobox.getSelectedItem();
-					((OmerPanel) centerPanel).updateDataset(selectedMovie);
+					((CustomChartPanel) centerPanel).updateDataset(selectedMovie);
                     centerPanel.repaint();
                 }
             });
         }
     }
 
-    private class DiscountPanel extends JPanel {
-        public DiscountPanel() {
-            
-
-            // calendar panel
-            JPanel calendarPanel = new JPanel(new GridLayout(7, 7));
-            calendarPanel.setPreferredSize(new Dimension(400, 200));
-
-            
-            add(calendarPanel, BorderLayout.CENTER);
-        }
-    }
-
-    private class OmerPanel extends JPanel {
+    private class CustomChartPanel extends JPanel {
 		DefaultCategoryDataset dataset1 = new DefaultCategoryDataset();
 		CategoryItemRenderer renderer1 = new LineAndShapeRenderer();
 
 		DefaultCategoryDataset dataset2 = new DefaultCategoryDataset();
 		CategoryItemRenderer renderer2 = new LineAndShapeRenderer();
         
-		public OmerPanel(Movie movie) {
+		public CustomChartPanel(Movie movie) {
 			movie = Movie.getAllMovies().get(0);
 
 			// Create a line chart

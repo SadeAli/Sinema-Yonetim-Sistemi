@@ -262,7 +262,11 @@ public class ScreeningRoomManagementPanel extends JPanel {
                                         new Discount(LocalDate.now().plusDays(i), Double.parseDouble(input)));
 
                             } else {
-                                DatabaseManager.deleteRow(Discount.class, discount.getId());
+                                if (JOptionPane.showConfirmDialog(null,
+                                        "Are you sure you want to remove the discount for "
+                                                + LocalDate.now().plusDays(i) + "?") == JOptionPane.YES_OPTION) {
+                                    DatabaseManager.deleteRow(Discount.class, discount.getId());
+                                }
                             }
 
                         } catch (Exception ex) {
@@ -360,8 +364,12 @@ public class ScreeningRoomManagementPanel extends JPanel {
                     public void actionPerformed(ActionEvent e) {
 
                         if (selectedMovie == null) {
-                            ScreeningRoom.deleteSessionsFromDate(screeningRoom.getId(), LocalDate.now().plusDays(index));
-                            repaintDayMoviePanels();
+                            if (JOptionPane.showConfirmDialog(null, "Are you sure you want to remove all sessions for "
+                                    + LocalDate.now().plusDays(index) + "?") == JOptionPane.YES_OPTION) {
+                                ScreeningRoom.deleteSessionsFromDate(screeningRoom.getId(),
+                                        LocalDate.now().plusDays(index));
+                                repaintDayMoviePanels();
+                            }
                             return;
                         }
 
