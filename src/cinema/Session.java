@@ -1,4 +1,5 @@
 package cinema;
+import database.*;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import database.*;
 
 @TableName("session")
 public class Session {

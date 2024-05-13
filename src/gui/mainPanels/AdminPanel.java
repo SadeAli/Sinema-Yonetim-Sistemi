@@ -29,6 +29,13 @@ import gui.mainPanels.adminPanels.MovieComboBox;
 import gui.mainPanels.adminPanels.MovieManagementPanel;
 import gui.mainPanels.adminPanels.ScreeningRoomManagementPanel;
 import java.awt.GridLayout;
+import java.time.format.DateTimeFormatter;
+
+import org.jfree.chart.ChartFactory;
+import org.jfree.chart.ChartPanel;
+import org.jfree.chart.JFreeChart;
+import org.jfree.chart.plot.PlotOrientation;
+import org.jfree.data.category.DefaultCategoryDataset;
 
 public class AdminPanel extends JPanel {
 
@@ -101,6 +108,7 @@ public class AdminPanel extends JPanel {
             movieCombobox.addActionListener(new ActionListener() {
                 public void actionPerformed(ActionEvent e) {
                     selectedMovie = (Movie) movieCombobox.getSelectedItem();
+					((OmerPanel) centerPanel).updateDataset(selectedMovie);
                     centerPanel.repaint();
                 }
             });
@@ -121,8 +129,47 @@ public class AdminPanel extends JPanel {
     }
 
     private class OmerPanel extends JPanel {
-        public OmerPanel(Movie movie) {
-            
+		private DefaultCategoryDataset dataset = new DefaultCategoryDataset();
+        
+		public OmerPanel(Movie movie) {
+			movie = Movie.getAllMovies().get(0);
+
+			// Create a line chart
+			
+			updateDataset(movie);
+
+
+			JFreeChart lineChart = ChartFactory.createLineChart(
+				"Selled Seats per Day", // Chart title
+				"Day", // X-axis label
+				"Number of Seats", // Y-axis label
+				dataset, // Dataset
+				PlotOrientation.VERTICAL, // Plot orientation
+				true, // Show legend
+				true, // Use tooltips
+				false // Configure chart to generate URLs?
+			);
+
+			// Create a chart panel and add it to the OmerPanel
+			ChartPanel chartPanel = new ChartPanel(lineChart);
+			chartPanel.setPreferredSize(new Dimension(900, 500));
+
+			this.add(chartPanel);
         }
+		
+		public void updateDataset(Movie movie) {
+			// Clear the existing dataset
+			dataset.clear();
+			// TODO: add new series as selling rate per seat
+		
+			// Populate the dataset with new values
+			for (int i = 0; i < 30; i++) {
+				LocalDate date = LocalDate.now().minusDays(30 - i);
+				dataset.addValue(Movie.getSales(movie.getId(), date), 
+					movie.getName(),
+					date.format(DateTimeFormatter.ofPattern("dd/MM")));
+			}
+		}
     }
+
 }
