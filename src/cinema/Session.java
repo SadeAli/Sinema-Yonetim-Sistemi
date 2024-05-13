@@ -201,14 +201,17 @@ public class Session {
 		String query = "DELETE FROM session WHERE id = ?";
 		String querySeatAvailability = "DELETE FROM seat_availability WHERE session_id = ?";
 		String queryCheckTicket = "SELECT seat_availability.id FROM seat_availability"
-			+" JOIN ticket ON seat_availability.ticket_id = ticket.id"
-			+" LIMIT 1";
+			+ " JOIN ticket ON seat_availability.ticket_id = ticket.id"
+			+ " WHERE seat_availability.session_id = ?"
+			+ " LIMIT 1";
+
 
 		PreparedStatement ps = null;
 		PreparedStatement psSeatAvailability = null;
 		PreparedStatement psCheckTicket = null;
 
 		try {
+			psCheckTicket.setInt(1, sessionId);
 			psCheckTicket = conn.prepareStatement(queryCheckTicket);
 			ResultSet rs = psCheckTicket.executeQuery();
 			if (rs.next()) {
