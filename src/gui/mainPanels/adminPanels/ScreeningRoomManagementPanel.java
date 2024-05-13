@@ -9,20 +9,14 @@ import java.awt.GridLayout;
 import java.awt.Insets;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.FocusEvent;
-import java.awt.event.FocusListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.time.LocalDate;
 import java.time.temporal.ChronoUnit;
 import java.util.List;
 
 import javax.swing.BorderFactory;
-import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.DefaultListCellRenderer;
 import javax.swing.JButton;
-import javax.swing.JCheckBox;
 import javax.swing.JComboBox;
 import javax.swing.JDialog;
 import javax.swing.JLabel;
@@ -30,20 +24,14 @@ import javax.swing.JList;
 import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JTabbedPane;
-import javax.swing.JTable;
 import javax.swing.JTextField;
-import javax.swing.JToolBar;
-import javax.swing.event.TableModelEvent;
-import javax.swing.event.TableModelListener;
-import javax.swing.table.AbstractTableModel;
 
+import cinema.Discount;
 import cinema.Movie;
 import cinema.ScreeningRoom;
 import cinema.Session;
 import database.DatabaseManager;
 import database.FilterCondition;
-import gui.CinemaGUI;
 
 public class ScreeningRoomManagementPanel extends JPanel {
     private List<ScreeningRoom> screeningRooms;
@@ -52,7 +40,7 @@ public class ScreeningRoomManagementPanel extends JPanel {
 
     private JPanel mainPanel = new JPanel();
     private JScrollPane scrollPane = new JScrollPane(mainPanel);
-    private JPanel southPanel = new ManagementPanel();
+    private JPanel southPanel = new JPanel();
 
     public ScreeningRoomManagementPanel(List<ScreeningRoom> screeningRooms) {
         this.screeningRooms = screeningRooms;
@@ -72,6 +60,10 @@ public class ScreeningRoomManagementPanel extends JPanel {
         for (Movie m : movies) {
             movieCombobox.addItem(m);
         }
+
+        southPanel.setLayout(new BoxLayout(southPanel, BoxLayout.Y_AXIS));
+        southPanel.add(new ManagementPanel());
+        southPanel.add(new DiscountPanel());
 
         add(southPanel, BorderLayout.SOUTH);
         add(scrollPane, BorderLayout.CENTER);
@@ -173,32 +165,81 @@ public class ScreeningRoomManagementPanel extends JPanel {
             }
         }
 
-        private class RemovePopup extends JDialog {
+        private class RemovePopup {
             public RemovePopup() {
-                setLayout(new GridLayout(2, 2));
+                String input = JOptionPane.showInputDialog("Enter a valid screening room id to remove");
 
-                JLabel idLabel = new JLabel("ID: ");
-                JTextField id = new JTextField();
-                JButton removeButton = new JButton("Remove");
+                if (input == null)
+                    return;
 
-                add(idLabel);
-                add(id);
-                add(removeButton);
+                try {
+                    int id = Integer.parseInt(input);
+                    if (ScreeningRoom.deleteFromDatabase(id)) {
+                        JOptionPane.showMessageDialog(null, "Screening room removed");
+                    } else {
+                        JOptionPane.showMessageDialog(null, "Screening can't be removed");
+                    }
+                    repaintDayMoviePanels();
+                } catch (Exception e) {
+                    JOptionPane.showMessageDialog(null, "Invalid input");
+                }
+            }
+        }
+    }
 
-                pack();
-                setLocationRelativeTo(null);
-                setVisible(true);
+    private class DiscountPanel extends JPanel {
+        public DiscountPanel() {
+            setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+            setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-                removeButton.addActionListener(new ActionListener() {
+            JLabel nameLabel = new JLabel("Discounts");
+            JPanel assignmentPanel = new JPanel();
+
+            assignmentPanel.setLayout(new BoxLayout(assignmentPanel, BoxLayout.X_AXIS));
+
+            nameLabel.setToolTipText("Discounts");
+
+            assignmentPanel.add(nameLabel);
+            add(assignmentPanel);
+
+            // get discounts
+            List<Discount> discountList = null;
+            try {
+                discountList = DatabaseManager.getAllRows(Discount.class);
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+
+            // create buttons for each discount
+            for (Discount d : discountList) {
+                assignmentPanel.add(new DiscountButton(d));
+            }
+        }
+
+        private class DiscountButton extends JButton {
+            public DiscountButton(Discount discount) {
+
+                JButton button = new JButton();
+
+                button.setText(discount.getDate().toString());
+
+                button.setToolTipText("" + discount.getRatio());
+
+                this.setBorder(BorderFactory.createLineBorder(Color.BLUE, 2));
+
+                this.setSize(new Dimension(100, 100));
+                this.setMargin(new Insets(50, 50, 50, 50));
+                this.add(button);
+
+                button.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        if (false == ScreeningRoom.deleteFromDatabase(Integer.parseInt(id.getText()))) {
-                            JOptionPane.showMessageDialog(null, "Unable to delete screening room");
-                        }
+
+                        // TODO: implement discount editing
+
                         repaintDayMoviePanels();
                     }
                 });
             }
-
         }
     }
 
@@ -245,12 +286,13 @@ public class ScreeningRoomManagementPanel extends JPanel {
             for (int i = 0; i < 30; i++) {
                 if (sessionArray[i] != null) {
                     try {
-                        movieArray[i] = DatabaseManager
-                                .getRowsFilteredAndSortedBy(Movie.class,
-                                        List.of(new FilterCondition("id", sessionArray[i].getMovieId(),
-                                                FilterCondition.Relation.EQUALS)),
-                                        "id", true)
-                                .get(0);
+                        List<Movie> movieList = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class,
+                                List.of(new FilterCondition("id", sessionArray[i].getMovieId(),
+                                        FilterCondition.Relation.EQUALS)),
+                                "id", true);
+
+                        movieArray[i] = movieList.size() > 0 ? movieList.get(0) : null;
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
@@ -259,12 +301,12 @@ public class ScreeningRoomManagementPanel extends JPanel {
 
             // create buttons for each day
             for (int i = 0; i < 30; i++) {
-                assignmentPanel.add(new DayMovieButtonPanel(i, movieArray[i], screeningRoom));
+                assignmentPanel.add(new DayMovieButton(i, movieArray[i], screeningRoom));
             }
         }
 
-        private class DayMovieButtonPanel extends JButton {
-            public DayMovieButtonPanel(final int index, Movie movie, ScreeningRoom screeningRoom) {
+        private class DayMovieButton extends JButton {
+            public DayMovieButton(final int index, Movie movie, ScreeningRoom screeningRoom) {
 
                 JButton button = new JButton();
 

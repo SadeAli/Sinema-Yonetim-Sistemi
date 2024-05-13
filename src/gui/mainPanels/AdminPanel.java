@@ -1,32 +1,24 @@
 package gui.mainPanels;
 
-import java.awt.BasicStroke;
 import java.awt.BorderLayout;
-import java.awt.Color;
 import java.awt.Dimension;
-import java.awt.Graphics;
-import java.awt.Graphics2D;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Random;
 
 import javax.swing.JButton;
-import javax.swing.JComboBox;
-import javax.swing.JFrame;
 import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JTabbedPane;
 import javax.swing.JToolBar;
-import javax.swing.SwingUtilities;
 
 import cinema.Movie;
 import cinema.ScreeningRoom;
 import gui.CinemaGUI;
-import gui.mainPanels.adminPanels.MovieComboBox;
+import gui.guiUtils.MovieComboBox;
 import gui.mainPanels.adminPanels.MovieManagementPanel;
 import gui.mainPanels.adminPanels.ScreeningRoomManagementPanel;
 import java.awt.GridLayout;

@@ -28,7 +28,6 @@ import java.awt.BorderLayout;
 import java.awt.Color;
 import java.awt.Component;
 import java.awt.Dimension;
-import java.awt.event.FocusListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
@@ -216,7 +215,7 @@ public class MovieSelectionPanel extends JPanel {
             add(filterButton, BorderLayout.EAST);
 
             backButton.addActionListener(e -> {
-                parent.goBack();
+                parent.showMainMenu();
             });
 
             JDialog filterWindow = new FilterPopup();
