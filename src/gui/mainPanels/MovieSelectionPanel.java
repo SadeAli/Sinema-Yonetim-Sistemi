@@ -91,12 +91,14 @@ public class MovieSelectionPanel extends JPanel {
     private class MovieBanner extends JPanel {
 
         BufferedImage image;
+        final Movie movie;
 
         public MovieBanner(Movie movie) {
+            this.movie = movie;
             this.setLayout(new BorderLayout());
 
             // colors and borders
-            setBackground(Color.WHITE);
+            setBackground(Color.LIGHT_GRAY);
             setBorder(BorderFactory.createLineBorder(Color.BLACK));
 
             // size
@@ -123,13 +125,16 @@ public class MovieSelectionPanel extends JPanel {
 
         private class CenterPanel extends JPanel {
             CenterPanel() {
-                JLabel movieName = new JLabel("Movie Name");
+                setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+                
+                JLabel movieName = new JLabel(movie.getName());
+                movieName.setFont(movieName.getFont().deriveFont(30.0f));
                 JLabel movieRating = new JLabel("Rating: 5.0");
                 JLabel movieRelease = new JLabel("Release: 01/01/2021");
 
                 add(movieName);
-                add(movieRating);
                 add(movieRelease);
+                add(movieRating);
             }
         }
 

@@ -81,7 +81,7 @@ public class MovieManagementPanel extends JPanel {
 
         this.addFocusListener(new FocusListener() {
             public void focusGained(FocusEvent e) {
-                // updateMoviePanels();
+                updateMovieTable();
             }
 
             public void focusLost(FocusEvent e) {
@@ -113,8 +113,7 @@ public class MovieManagementPanel extends JPanel {
                             "Delete Movie", JOptionPane.YES_NO_OPTION);
                     if (result == JOptionPane.YES_OPTION) {
                         try {
-                            // TODO delete movie with controls
-                            DatabaseManager.deleteRow(Movie.class, selectedMovie.getId());
+                            Movie.deleteFromDatabase(selectedMovie);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
