@@ -151,7 +151,7 @@ public class CinemaGUI extends JFrame {
 				float rating = movie.getRating();
 				
 				float randFloat = rand.nextFloat();
-				int maxSeats = (int) ((1 - randFloat*randFloat) * (rating / 5 + 0.5) * seatAvList.size());
+				int maxSeats = (int) ((1 - randFloat*randFloat) * (rating / 5) * seatAvList.size());
 				for (int i = 0; i < seatAvList.size() && i < maxSeats; i++) {
 					seatsToBook.add(seatAvList.get(i));
 				}
