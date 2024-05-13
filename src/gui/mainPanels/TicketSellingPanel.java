@@ -252,7 +252,6 @@ public class TicketSellingPanel extends JPanel {
                     }
 
                     totalPrice = defaultPrice * selectedSeats.size() * (1 - discountRatio);
-                    JOptionPane.showMessageDialog(this, "Total price: " + totalPrice + " TL", "Total Price", JOptionPane.INFORMATION_MESSAGE);
                     ticket = SeatAvailability.bookSeatList(selectedSeats, totalPrice);
 
                     if (ticket == null) {
