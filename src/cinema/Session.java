@@ -274,4 +274,20 @@ public class Session {
 	public boolean deleteFromDatabase() {
 		return deleteFromDatabase(this.id);
 	}
+
+	public static boolean deleteSessionsWithScreeningRoomId(int screeningRoomId, Connection conn) {
+		String query = "DELETE FROM session WHERE screening_room_id = ?";
+		
+		try {
+			PreparedStatement ps = conn.prepareStatement(query);
+			ps.setInt(1, screeningRoomId);
+			ps.executeUpdate();
+			
+			return true;
+		} catch (SQLException e) {
+			DatabaseManager.rollback(conn);
+			System.err.println("Unable to delete sessions: " + e.getMessage());
+			return false;
+		}
+	}
 }

@@ -68,7 +68,7 @@ public class TicketSellingPanel extends JPanel {
 
         cardLayout.show(this, "Movie");
     }
-    
+
     public void reloadPaymentPanel() {
         remove(paymentPanel);
         paymentPanel = new PaymentPanel();
@@ -81,6 +81,7 @@ public class TicketSellingPanel extends JPanel {
     }
 
     public void selectMovie(Movie movie, LocalDate date) {
+        selectedSeats.clear();
         selectedMovie = movie;
         selectedDate = date;
         sessionSelectionPanel.listSessions(movie, date);
@@ -88,6 +89,7 @@ public class TicketSellingPanel extends JPanel {
     }
 
     public void deselectMovie() {
+        selectedSeats.clear();
         selectedMovie = null;
         selectedDate = null;
         cardLayout.show(this, "Movie");
@@ -148,7 +150,9 @@ public class TicketSellingPanel extends JPanel {
             add(scrollPane, BorderLayout.CENTER);
 
             for (Session session : sessionsAvailable) {
-                JButton sessionButton = new JButton(session.getStartTime().toString());
+                JButton sessionButton = new JButton("<html>" + session.getStartTime().toString() + " - " +
+                        (session.getStartTime().plusMinutes(movie.getDuration())) + "<br> Room: "
+                        + session.getScreeningRoomId() + "</html>");
                 sessionButton.addActionListener(e -> {
                     selectSession(session);
                 });
@@ -198,6 +202,7 @@ public class TicketSellingPanel extends JPanel {
                     col = room.getSeatColCount();
 
             seatPanel.setLayout(new GridLayout(row, col));
+            selectedSeats.clear();
             seatStates = new SeatState[row][col];
 
             List<SeatAvailability> seatAvailabilities = null;
@@ -227,6 +232,7 @@ public class TicketSellingPanel extends JPanel {
                 add(nextButton);
 
                 backButton.addActionListener(e -> {
+                    deselectMovie();
                     cardLayout.show(TicketSellingPanel.this, "Session");
                 });
 
@@ -240,13 +246,13 @@ public class TicketSellingPanel extends JPanel {
 
                     try {
                         List<Discount> dl = DatabaseManager.getRowsFilteredAndSortedBy(Discount.class, List.of(
-                            new FilterCondition("date", selectedDate, FilterCondition.Relation.EQUALS)
-                        ), "id", true);
+                                new FilterCondition("date", selectedDate, FilterCondition.Relation.EQUALS)), "id",
+                                true);
 
                         if (dl.size() > 0) {
                             discountRatio = dl.get(0).getRatio();
                         }
-                        
+
                     } catch (Exception ex) {
                         ex.printStackTrace();
                     }
@@ -349,7 +355,7 @@ public class TicketSellingPanel extends JPanel {
             // add center panel components
             paymentInfoPanel.add(selectionInfo);
             paymentInfoPanel.add(priceInfo);
-            
+
             paymentInfoPanel.add(new JLabel("Name:"));
             paymentInfoPanel.add(nameField);
             paymentInfoPanel.add(new JLabel("Surname:"));
@@ -411,8 +417,32 @@ public class TicketSellingPanel extends JPanel {
 
                 Ticket.verifyPurchase(ticket.getId());
 
+                List<Seat> seats = new ArrayList<>(selectedSeats.size());
+                for (SeatAvailability sa : selectedSeats) {
+                    try {
+                        seats.add(DatabaseManager.getRowById(Seat.class, sa.getSeatId()));
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+                }
+
+                String selectedSeatRowAndCols = "";
+                for (int i = 0; i < seats.size(); i++) {
+                    selectedSeatRowAndCols += (char) ('A' + seats.get(i).getRow());
+                    selectedSeatRowAndCols += seats.get(i).getCol();
+
+                    if (i != seats.size() - 1) {
+                        selectedSeatRowAndCols += ", ";
+                    } 
+                    
+                    if ((i + 1) % 3 == 0) {
+                        selectedSeatRowAndCols += "\n";
+                    }
+                }
+
                 JOptionPane.showMessageDialog(this,
-                        "Payment successful!" + "\n" + "Your ticket code is: " + ticket.getCode() + "\n");
+                        "Payment successful!" + "\n" + "Your ticket code is: " + ticket.getCode() + "\n"
+                                + "Enjoy the movie!" + "\n" + "Screening Room: " + seats.get(0).getScreeningRoomId() + "\n" + "Selected seats:" + "\n" + selectedSeatRowAndCols);
 
                 ticket = null;
                 selectedSeats.clear();

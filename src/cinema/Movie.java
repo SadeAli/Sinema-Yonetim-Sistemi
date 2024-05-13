@@ -84,7 +84,7 @@ public class Movie {
         return rating;
     }
 
-    public float getRatingCount() {
+    public int getRatingCount() {
         return ratingCount;
     }
 

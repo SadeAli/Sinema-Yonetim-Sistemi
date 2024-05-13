@@ -81,7 +81,7 @@ public class MovieManagementPanel extends JPanel {
 
         this.addFocusListener(new FocusListener() {
             public void focusGained(FocusEvent e) {
-                // updateMoviePanels();
+                updateMovieTable();
             }
 
             public void focusLost(FocusEvent e) {
@@ -113,8 +113,7 @@ public class MovieManagementPanel extends JPanel {
                             "Delete Movie", JOptionPane.YES_NO_OPTION);
                     if (result == JOptionPane.YES_OPTION) {
                         try {
-                            // TODO delete movie with controls
-                            DatabaseManager.deleteRow(Movie.class, selectedMovie.getId());
+                            Movie.deleteFromDatabase(selectedMovie);
                         } catch (Exception ex) {
                             ex.printStackTrace();
                         }
@@ -259,7 +258,7 @@ public class MovieManagementPanel extends JPanel {
                     movie.setName((String) value);
                     break;
                 case 1:
-                    movie.setDuration((int) value);
+                    movie.setDuration((int)value);
                     break;
                 case 2:
                     movie.setLastScreeningDate((LocalDate) value);
@@ -271,7 +270,7 @@ public class MovieManagementPanel extends JPanel {
                     movie.setRating((float) value);
                     break;
                 case 5:
-                    movie.setRatingCount((int) value);
+                    movie.setRatingCount((int)value);
                     break;
                 default:
                     break;
