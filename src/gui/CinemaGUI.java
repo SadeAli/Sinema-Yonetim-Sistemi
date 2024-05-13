@@ -1,16 +1,25 @@
 package gui;
 
-import java.awt.CardLayout;
-
-import javax.swing.JOptionPane;
-import javax.swing.UIManager;
-import javax.swing.JFrame;
-import javax.swing.JPanel;
-import javax.swing.JButton;
-
+import cinema.Movie;
+import cinema.ScreeningRoom;
+import cinema.SeatAvailability;
+import cinema.Session;
+import cinema.Ticket;
+import database.DatabaseManager;
+import database.FilterCondition;
 import gui.mainPanels.AdminPanel;
 import gui.mainPanels.MovieRatingPanel;
 import gui.mainPanels.TicketSellingPanel;
+import java.awt.CardLayout;
+import java.time.LocalDate;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import javax.swing.JButton;
+import javax.swing.JFrame;
+import javax.swing.JOptionPane;
+import javax.swing.JPanel;
+import javax.swing.UIManager;
 
 public class CinemaGUI extends JFrame {
     static final int width = 1000;
@@ -116,4 +125,76 @@ public class CinemaGUI extends JFrame {
             return password != null && password.equals("admin");
         }
     }
+
+	public static void createFakeTickets() {
+		List<Session> sessionList = Session.getAllSessions();
+		Random rand = new Random();
+
+		double price = 70.0;
+		
+		for (Session session : sessionList) {
+			try {
+				List<SeatAvailability> seatAvList = DatabaseManager.getRowsFilteredAndSortedBy(
+						SeatAvailability.class,
+						List.of(
+								new FilterCondition("sessionId", session.getId(), FilterCondition.Relation.EQUALS),
+								new FilterCondition("isAvailable", true, FilterCondition.Relation.EQUALS)
+						),
+						null,
+						false);
+				
+				List<SeatAvailability> seatsToBook = new ArrayList<>();
+				
+				Movie movie = DatabaseManager.getRowById(Movie.class, session.getMovieId());
+				float rating = movie.getRating();
+				
+				float randFloat = rand.nextFloat(1);
+				int maxSeats = (int) ((1 - randFloat*randFloat) * (rating / 5 + 0.5) * seatAvList.size());
+				for (int i = 0; i < seatAvList.size() && i < maxSeats; i++) {
+					seatsToBook.add(seatAvList.get(i));
+				}
+				
+			
+				if (seatsToBook.size() > 0)
+					Ticket.verifyPurchase(SeatAvailability.bookSeatList(seatsToBook, seatsToBook.size()*price).getId());
+			} catch (Exception ex) {
+				System.err.println("Unable to create fake tickets: " + ex.getMessage());
+			}
+		}
+	}
+
+	public static void createSessionBackwards() {
+		List<ScreeningRoom> screeningRoomList = ScreeningRoom.getAllScreeningRooms();
+		Random rand = new Random();
+
+		LocalDate firstDate	= LocalDate.now().minusDays(30);
+		for (LocalDate date = LocalDate.now(); date.isAfter(firstDate); date = date.minusDays(1)) {
+			try {
+				List<Movie> movieList = DatabaseManager.getRowsFilteredAndSortedBy(
+						Movie.class,
+						List.of(
+								new FilterCondition("releaseDate", date, FilterCondition.Relation.LESS_THAN_OR_EQUALS),
+								new FilterCondition("lastScreeningDate", date, FilterCondition.Relation.GREATER_THAN_OR_EQUALS)
+						),
+						"rating",
+						true
+				);
+				
+						
+				for (ScreeningRoom screeningRoom : screeningRoomList) {
+					float randFloat = rand.nextFloat(1);
+					int movieIndex = (int) ((1 - randFloat * randFloat) * movieList.size());
+					
+					if (movieIndex < 0) {
+						movieIndex = 0;
+					} else if (movieIndex >= movieList.size()) {
+						movieIndex = movieList.size() - 1;
+					}
+					screeningRoom.addMovieToDate(date, movieList.get(movieIndex).getId());
+				}
+			} catch (Exception ex) {
+				System.err.println("Unable to create session: " + ex.getMessage());
+			}
+		}
+	}
 }

@@ -1,4 +1,5 @@
 package cinema;
+import database.*;
 import java.lang.reflect.Field;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
@@ -10,8 +11,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
-
-import database.*;
 
 @TableName("session")
 public class Session {
@@ -201,7 +200,7 @@ public class Session {
 	private static boolean deleteUtil(int sessionId, Connection conn) {
 		String query = "DELETE FROM session WHERE id = ?";
 		String querySeatAvailability = "DELETE FROM seat_availability WHERE session_id = ?";
-		String queryCheckTicket = "SELECT id FROM seat_availability"
+		String queryCheckTicket = "SELECT seat_availability.id FROM seat_availability"
 			+" JOIN ticket ON seat_availability.ticket_id = ticket.id"
 			+" LIMIT 1";
 
