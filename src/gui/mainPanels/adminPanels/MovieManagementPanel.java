@@ -15,10 +15,13 @@ import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.List;
 
+import javax.swing.BoxLayout;
 import javax.swing.DefaultCellEditor;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JDialog;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSpinner;
@@ -34,7 +37,9 @@ import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.TableCellRenderer;
 
 import cinema.Movie;
+import cinema.ScreeningRoom;
 import database.DatabaseManager;
+import gui.mainPanels.DateSpinner;
 import gui.mainPanels.adminPanels.MovieManagementPanel;
 
 public class MovieManagementPanel extends JPanel {
@@ -49,7 +54,7 @@ public class MovieManagementPanel extends JPanel {
 
         JPanel northPanel = new JPanel(new BorderLayout());
         JScrollPane scrollPane = new JScrollPane(movieTable);
-        JPanel southPanel = new JPanel(new BorderLayout());
+        JPanel southPanel = new JPanel();
 
         // northPanel components
         JCheckBox checkBox = new JCheckBox("edit");
@@ -58,19 +63,18 @@ public class MovieManagementPanel extends JPanel {
         northPanel.add(label, BorderLayout.WEST);
 
         // southPanel components
-        JButton addButton = new JButton("Add");
         JButton removeButton = new JButton("Remove");
-        JButton updateButton = new JButton("Update");
-
-        southPanel.add(addButton, BorderLayout.WEST);
-        southPanel.add(removeButton, BorderLayout.CENTER);
-        southPanel.add(updateButton, BorderLayout.EAST);
+        JButton addButton = new JButton("Add");       
+        
+        southPanel.add(addButton);
+        southPanel.add(removeButton);
 
         // add main components
         add(northPanel, BorderLayout.NORTH);
         add(scrollPane, BorderLayout.CENTER);
+        add(southPanel, BorderLayout.SOUTH);
 
-        updateMoviePanels();
+        updateMovieTable();
 
         checkBox.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
@@ -93,34 +97,53 @@ public class MovieManagementPanel extends JPanel {
 
         addButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                // TODO: add movie
+                if (editMode == false) {
+                    JOptionPane.showMessageDialog(null, "Please enable edit mode to remove a movie", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                new AddPopup();
             }
         });
+        
+        removeButton.addActionListener(new ActionListener() {
+            public void actionPerformed(ActionEvent e) {
+                if (editMode == false) {
+                    JOptionPane.showMessageDialog(null, "Please enable edit mode to remove a movie", "Error",
+                            JOptionPane.ERROR_MESSAGE);
+                    return;
+                }
+                
+                if (selectedMovie != null) {
+                    int result = JOptionPane.showConfirmDialog(null, "Are you sure you want to delete this movie?",
+                            "Delete Movie", JOptionPane.YES_NO_OPTION);
+                    if (result == JOptionPane.YES_OPTION) {
+                        try {
+                            // TODO delete movie with controls
+                            DatabaseManager.deleteRow(Movie.class, selectedMovie.getId());
+                        } catch (Exception ex) {
+                            ex.printStackTrace();
+                        }
+                        updateMovieList();
+                        updateMovieTable();
+                    }
+                } 
+            }
+        });         
     }
 
     public void updateMovieList() {
         movieList = Movie.getAllMovies();
     }
 
-    public void updateMoviePanels() {
+    public void updateMovieTable() {
         movieTable.setModel(new MovieTableModel(movieList));
-
-        // for (int i = 0; i < movieTable.getRowCount(); i++) {
-        // for (int j = 0; j < movieTable.getColumnCount(); j++) {
-        // movieTable.setDefaultRenderer(Object.class, new DefaultTableCellRenderer() {
-        // public Component getTableCellRendererComponent(JTable table, Object value,
-        // boolean isSelected, boolean hasFocus, int row, int column) {
-        // Component c = super.getTableCellRendererComponent(table, value, isSelected,
-        // hasFocus, row, column);
-        // ((JLabel) c).setHorizontalAlignment(SwingConstants.CENTER);
-        // return c;
-        // }
-        // });
-        // }
-        // }
 
         DateCellEditor dateEditor = new DateCellEditor();
         movieTable.setDefaultEditor(LocalDate.class, dateEditor);
+
+        revalidate();
 
         movieTable.addMouseListener(new MouseAdapter() {
             public void mouseClicked(MouseEvent e) {
@@ -142,25 +165,14 @@ public class MovieManagementPanel extends JPanel {
         });
     }
 
-    // int sum = 0;
-    // int totalDays = (int) ChronoUnit.DAYS.between(movie.getReleaseDate(),
-    // LocalDate.now());
-    // for (int i = 0; i < totalDays; i++) {
-    // sum += Movie.getSales(movie.getId(), LocalDate.now().minusDays(i));
-    // }
-    // return sum;
-
     private class DateCellEditor extends DefaultCellEditor {
         SpinnerDateModel dateModel = new SpinnerDateModel();
         JSpinner dateSpinner = new JSpinner(dateModel);
         DateEditor editor = new JSpinner.DateEditor(dateSpinner, "dd/MM/yy");;
 
         public DateCellEditor() {
-            super(new JTextField()); // Explicitly invoke the super constructor with a JTextField argument
+            super(new JTextField());
 
-            // Create a spinner for date selection
-
-            // add spinner for date filter
             dateModel.setCalendarField(Calendar.DAY_OF_MONTH);
             dateSpinner.setPreferredSize(new Dimension(300, 50));
             dateSpinner.setEditor(editor);
@@ -187,7 +199,8 @@ public class MovieManagementPanel extends JPanel {
         }
 
         public Object getCellEditorValue() {
-            return ((java.util.Date) editor.getModel().getValue()).toInstant().atZone(ZoneId.systemDefault()).toLocalDate();
+            return ((java.util.Date) editor.getModel().getValue()).toInstant().atZone(ZoneId.systemDefault())
+                    .toLocalDate();
         }
     }
 
@@ -279,6 +292,74 @@ public class MovieManagementPanel extends JPanel {
             }
 
             fireTableCellUpdated(row, col);
+        }
+    }
+
+    private class AddPopup extends JDialog {
+        public AddPopup() {
+            setLayout(new BoxLayout(getContentPane(), BoxLayout.Y_AXIS));
+            setSize(300, 300);
+            setLocationRelativeTo(null);
+
+            JTextField nameField = new JTextField(20);
+            JTextField durationField = new JTextField(20);
+            DateSpinner releaseDateSpinner = new DateSpinner();
+            DateSpinner lastScreeningDateSpinner = new DateSpinner();
+
+            JPanel namePanel = new JPanel();
+            JPanel durationPanel = new JPanel();
+            JPanel releaseDatePanel = new JPanel();
+            JPanel lastScreeningDatePanel = new JPanel();
+            JPanel buttonPanel = new JPanel();
+
+            namePanel.add(new JLabel("Name: "));
+            namePanel.add(nameField);
+
+            durationPanel.add(new JLabel("Duration: "));
+            durationPanel.add(durationField);
+
+            releaseDatePanel.add(new JLabel("Release Date: "));
+            releaseDatePanel.add(releaseDateSpinner);
+
+            lastScreeningDatePanel.add(new JLabel("Last Screening Date: "));
+            lastScreeningDatePanel.add(lastScreeningDateSpinner);
+
+            JButton addButton = new JButton("Add");
+            JButton cancelButton = new JButton("Cancel");
+
+            buttonPanel.add(addButton);
+            buttonPanel.add(cancelButton);
+
+            add(namePanel);
+            add(durationPanel);
+            add(releaseDatePanel);
+            add(lastScreeningDatePanel);
+            add(buttonPanel);
+
+            pack();
+
+            addButton.addActionListener(new ActionListener() {
+                public void actionPerformed(ActionEvent e) {
+                    String name = nameField.getText();
+                    int duration = Integer.parseInt(durationField.getText());
+                    LocalDate releaseDate = releaseDateSpinner.getDate();
+                    LocalDate lastScreeningDate = lastScreeningDateSpinner.getDate();
+
+                    Movie movie = new Movie(name, duration, releaseDate, lastScreeningDate);
+
+                    try {
+                        DatabaseManager.insertRow(movie);
+                    } catch (Exception ex) {
+                        ex.printStackTrace();
+                    }
+
+                    updateMovieList();
+                    updateMovieTable();
+                    dispose();
+                }
+            });
+
+            setVisible(true);
         }
     }
 }

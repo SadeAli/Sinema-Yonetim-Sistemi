@@ -245,12 +245,13 @@ public class ScreeningRoomManagementPanel extends JPanel {
             for (int i = 0; i < 30; i++) {
                 if (sessionArray[i] != null) {
                     try {
-                        movieArray[i] = DatabaseManager
-                                .getRowsFilteredAndSortedBy(Movie.class,
-                                        List.of(new FilterCondition("id", sessionArray[i].getMovieId(),
-                                                FilterCondition.Relation.EQUALS)),
-                                        "id", true)
-                                .get(0);
+                        List<Movie> movieList = DatabaseManager.getRowsFilteredAndSortedBy(Movie.class,
+                                List.of(new FilterCondition("id", sessionArray[i].getMovieId(),
+                                        FilterCondition.Relation.EQUALS)),
+                                "id", true);
+                        
+                        movieArray[i] = movieList.size() > 0 ? movieList.get(0) : null;
+
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
