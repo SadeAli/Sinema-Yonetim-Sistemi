@@ -107,11 +107,11 @@ public class MovieSelectionPanel extends JPanel {
 
             try {
                 image = ImageIO.read(new File("data/pictures/" + movie.getId() + ".jpg"));
+                add(new LeftPanel(), BorderLayout.WEST);
             } catch (Exception e) {
                 e.printStackTrace();
             }
 
-            add(new LeftPanel(), BorderLayout.WEST);
             add(new CenterPanel(), BorderLayout.CENTER);
 
             // actions
