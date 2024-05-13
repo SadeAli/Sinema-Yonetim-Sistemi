@@ -5,7 +5,8 @@ import java.awt.CardLayout;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.GridLayout;
-
+import java.awt.event.FocusAdapter;
+import java.awt.event.FocusEvent;
 import java.time.LocalDate;
 
 import java.util.ArrayList;
@@ -282,7 +283,7 @@ public class TicketSellingPanel extends JPanel {
                                 this.setBorder(new LineBorder(disabledColor, 1));
                                 break;
                             default:
-                                // TODO: give feedback to the user
+                                JOptionPane.showMessageDialog(this, "Some error occured. Please try again.");
                                 break;
                         }
                     });
@@ -378,7 +379,8 @@ public class TicketSellingPanel extends JPanel {
 
                 Ticket.verifyPurchase(ticket.getId());
 
-                JOptionPane.showMessageDialog(this, "Payment successful!" + "\n" + "Your ticket code is: " + ticket.getCode() + "\n");
+                JOptionPane.showMessageDialog(this,
+                        "Payment successful!" + "\n" + "Your ticket code is: " + ticket.getCode() + "\n");
 
                 parent.showMainMenu();
             });
@@ -407,7 +409,7 @@ public class TicketSellingPanel extends JPanel {
                 JOptionPane.showMessageDialog(this, "Card has expired.");
                 return false;
             }
-            
+
             return true;
         }
     }
